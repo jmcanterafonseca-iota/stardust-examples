@@ -1,0 +1,12 @@
+[
+  'rms1qzz5vsrj08afw7l8pd4es6u7mrx9ts6mech62y0mc6mqm7uyssh6jnqljf2',
+  'rms1qp35nqahluyg7t90pfa5revxxl2trm2xdgku6ayat4zh5l6ntsjwuazelz2',
+  'rms1qpvxxw78h54qvrluduwfy0tkj8k37ucjux5h8gk0a8y7n6czfspd2cnjq7v',
+  'rms1qz89n5ar5emw55xcvpgdgmjz357awqwd6myjjt092me7c5yww8sjjnyl9va',
+  'rms1qr3cuayuahd5ptgw4pgevd34k0sxr4q6st97lvcsr7j3s6mmauf2gzdw9k6',
+  'rms1qzxgm2qtkrzhj0rp2n67vjjagyztpv6m62nff9wwcg5fmtf309zf7j8jzne',
+  'rms1qpuqw56a47vgdp07q3ks4gkd4a0sydzymq3zt9xxef3ylx4h26pkg3r6t8l',
+  'rms1qrasfydya9te45kf7zy83z2jky8yltve2nc0m0m23gwx79mmdwcq5dfxmdj',
+  'rms1qr78tgy64lzgvflxkgpqfhje5nc4w55szj20zjsf3p9unpljv9jczh2t4u2',
+  'rms1qpqn7m9aympyfeneyxtkcerfm5yquq4rqdxmvxhhumc5mcye9ucy5650cn0'
+]
