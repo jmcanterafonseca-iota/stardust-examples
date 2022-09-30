@@ -10,31 +10,48 @@ import {
     IBlock,
     IndexerPluginClient, ITransactionEssence, ITransactionPayload, IUTXOInput, serializeTransactionEssence, SIGNATURE_UNLOCK_TYPE, SingleNodeClient, TransactionHelper, TRANSACTION_ESSENCE_TYPE, TRANSACTION_PAYLOAD_TYPE, UnlockTypes
 } from "@iota/iota.js";
-// import { NeonPowProvider } from "@iota/pow-neon.js";
-import { NodePowProvider } from "@iota/pow-node.js";
+import { NeonPowProvider } from "@iota/pow-neon.js";
+// import { NodePowProvider } from "@iota/pow-node.js";
 import { Converter, WriteStream } from "@iota/util.js";
 import bigInt from "big-integer";
 
 const API_ENDPOINT = "https://api.testnet.shimmer.network";
 
+const bech32AddressOrigin = process.argv[2];
+if (!bech32AddressOrigin) {
+    console.error("Please provide an origin address");
+    process.exit(-1);
+}
+
+const bech32AddressDestination = process.argv[3];
+if (!bech32AddressDestination) {
+    console.error("Please provide a destination address");
+    process.exit(-1);
+}
+
+const publicKeyOriginHex = process.argv[4];
+if (!publicKeyOriginHex) {
+    console.error("Please provide an hex public key");
+    process.exit(-1);
+}
+
+const privateKeyOriginHex = process.argv[5];
+if (!privateKeyOriginHex) {
+    console.error("Please provide an hex private key");
+    process.exit(-1);
+}
+
 // Amount in glows
-const amount = process.argv[2];
+const amount = process.argv[6];
 if (!amount) {
     console.error("Please provide an amount");
     process.exit(-1);
 }
 
-// This address has some tokens from the Faucet
-const bech32AddressOrigin =      "rms1qr7ke3dtfwcasepx9fxsxeqfz35vnmqmt9drxry775c8wemtld9f6vjflfn";
-const bech32AddressDestination = "rms1qpqrdquq8q984e0t8tj0s04rpz6jy6xt0zqkw3hxq7hztlmysjcrkvsnshz";
-
-const publicKeyOriginHex  = "0xfb6305c2ed1120831395687d32d42ec4ba06419cf30725bf82743490fd099835";
-const privateKeyOriginHex = "0x900ab3e9f9735543adcfcba1cfaf9a2d4645bde1b3306d3b3d50480945f1a051fb6305c2ed1120831395687d32d42ec4ba06419cf30725bf82743490fd099835";
-
 const privateKeyOrigin = Converter.hexToBytes(privateKeyOriginHex);
 
 async function run() {
-    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NodePowProvider() });
+    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const indexerPlugin = new IndexerPluginClient(client);
 
     const protocolInfo = await client.protocolInfo();

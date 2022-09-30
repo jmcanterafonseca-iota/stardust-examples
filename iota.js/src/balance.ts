@@ -1,7 +1,7 @@
 import {
     IndexerPluginClient, SingleNodeClient
 } from "@iota/iota.js";
-// import { NeonPowProvider } from "@iota/pow-neon.js";
+import { NeonPowProvider } from "@iota/pow-neon.js";
 
 
 const API_ENDPOINT = "https://api.testnet.shimmer.network";
@@ -15,7 +15,7 @@ if (!bech32Address) {
 }
 
 async function run() {
-    const client = new SingleNodeClient(API_ENDPOINT, /* { powProvider: new NeonPowProvider() } */);
+    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() } );
     const indexerPlugin = new IndexerPluginClient(client);
 
     const protocolInfo = await client.protocolInfo();

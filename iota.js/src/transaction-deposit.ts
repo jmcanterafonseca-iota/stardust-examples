@@ -10,8 +10,8 @@ import {
     IBlock,
     IndexerPluginClient, ITransactionEssence, ITransactionPayload, IUTXOInput, serializeTransactionEssence, SIGNATURE_UNLOCK_TYPE, SingleNodeClient, STORAGE_DEPOSIT_RETURN_UNLOCK_CONDITION_TYPE, TransactionHelper, TRANSACTION_ESSENCE_TYPE, TRANSACTION_PAYLOAD_TYPE, UnlockTypes
 } from "@iota/iota.js";
-// import { NeonPowProvider } from "@iota/pow-neon.js";
-import { NodePowProvider } from "@iota/pow-node.js";
+import { NeonPowProvider } from "@iota/pow-neon.js";
+// import { NodePowProvider } from "@iota/pow-node.js";
 import { Converter, WriteStream } from "@iota/util.js";
 import bigInt from "big-integer";
 
@@ -25,7 +25,7 @@ if (!amount) {
 }
 
 // Storage deposit 42600 glow
-const STORAGE_DEPOSIT = 42600;
+const STORAGE_DEPOSIT = 46800;
 
 // This address has some tokens from the Faucet
 const bech32AddressOrigin =      "rms1qr7ke3dtfwcasepx9fxsxeqfz35vnmqmt9drxry775c8wemtld9f6vjflfn";
@@ -37,7 +37,7 @@ const privateKeyOriginHex = "0x900ab3e9f9735543adcfcba1cfaf9a2d4645bde1b3306d3b3
 const privateKeyOrigin = Converter.hexToBytes(privateKeyOriginHex);
 
 async function run() {
-    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NodePowProvider() });
+    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const indexerPlugin = new IndexerPluginClient(client);
 
     const protocolInfo = await client.protocolInfo();

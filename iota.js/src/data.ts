@@ -3,7 +3,9 @@ import {
     IBlock,
     ITaggedDataPayload, SingleNodeClient, TAGGED_DATA_PAYLOAD_TYPE
 } from "@iota/iota.js";
-import { NodePowProvider } from "@iota/pow-node.js";
+// import { NodePowProvider } from "@iota/pow-node.js";
+import { NeonPowProvider } from "@iota/pow-neon.js";
+
 import { Converter } from "@iota/util.js";
 
 
@@ -18,7 +20,7 @@ if (!data) {
 }
 
 async function run() {
-    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NodePowProvider() } );
+    const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() } );
 
     // And now submitting a block with the transaction payload
     const dataPayload: ITaggedDataPayload = {
@@ -27,12 +29,12 @@ async function run() {
         data: Converter.utf8ToHex(data, true),
     };
 
-    const tips = await client.tips();
+    // const tips = await client.tips();
 
     // 8. Create Block
     const block: IBlock = {
         protocolVersion: DEFAULT_PROTOCOL_VERSION,
-        parents: tips.tips,
+        parents: [],
         payload: dataPayload,
         nonce: "0",
     };
