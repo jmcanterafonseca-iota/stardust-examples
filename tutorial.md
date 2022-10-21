@@ -55,6 +55,8 @@ In order to start transacting in the network it is needed to count with one or m
 
 ### Generating a seed phrase and an Ed25519 seed
 
+The seed phrase is generated in accordance with the [BIP 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) specification and it is composed by a set of words, represented as whitespace-separated string.
+
 ```typescript
     // Default entropy length is 256
     const randomMnemonic = Bip39.randomMnemonic();
@@ -62,19 +64,17 @@ In order to start transacting in the network it is needed to count with one or m
     console.log("Seed phrase:", randomMnemonic);
 ```
 
-The seed phrase is generated in accordance with the [Bip 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) specification and it is composed by a set of words, represented as whitespace-separated string.
-
-Once you have the seed phrase the next step is to obtain a Ed25519 seed from the seed phrase:
+Once you have the seed phrase (BIP 39 random mnemonic) the next step is to obtain a Ed25519 master seed from the seed phrase:
 
 ```typescript
- const baseSeed = Ed25519Seed.fromMnemonic(randomMnemonic);
+ const masterSeed = Ed25519Seed.fromMnemonic(randomMnemonic);
 ```
 
-This base seed will be used later to generate the Ed25519 key pairs through the address paths.
+This master seed will be used later to generate the Ed25519 key pairs through the BIP32 method.
 
 ### Deterministic address paths (Bip32)
 
-This base seed can be used to generate, in a deterministic manner, addresses i.e. Ed25519 key pairs, using [Bip44]() convention which it is based on [Bip32]() paths. The iota.js library provides a method `generateBip44Address` that creates these paths using an state object that it is updated on each call made.
+This master seed can be used to generate, in a deterministic manner, addresses i.e. Ed25519 key pairs, generated through the [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) method and structured as per the [BIP44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki) logical hierarchy. The iota.js library provides a method `generateBip44Address` that creates these BIP32 paths using an state object that it is updated on each call made.
 
 ```typescript
 const addressGeneratorAccountState = {
@@ -91,7 +91,7 @@ for (let i = 0; i < 6; i++) {
 }
 ```
 
-That will generate the following Bip32 paths:
+That will generate the following BIP32 paths:
 
 ```text
 m/44'/4218'/0'/0'/0'
@@ -102,25 +102,26 @@ m/44'/4218'/0'/0'/2'
 m/44'/4218'/0'/1'/2'
 ```
 
-* `44` is a constant that denotes *purpose*, (`0x8000002C`) following the BIP43 recommendation.
+* `44` is a constant that denotes *purpose*, (`0x8000002C`) following the [BIP43](https://github.com/bitcoin/bips/blob/master/bip-0043.mediawiki) recommendation.
 * `4218` is the *coin type* for Shimmer
 * the three following numbers are:
 
 * the *account index*, as users can use these accounts to organize the funds in the same fashion as bank accounts; for donation purposes (where all addresses are considered public), for saving purposes, for common expenses etc.
-* the *change index*, that allows to separate addresses used for external operations or just for internal operations
+* the *change index*, that allows to separate addresses used for external operations (ex. receive funds) or just for internal operations (ex. generate change).
 * the *address index* that increments sequentially
 
-In the example above it has been generated `6` address paths, for the account `0` and from index `0` to `2`, starting with one address for external operations and then alternating with one address for internal operations.
+In the example above it has been generated `6` address paths, for the account `0` and from index `0` to `2`, starting with one address for external operations and then alternating with another address for internal operations.
 
 ### Ed25519 key pairs for the addresses
 
-For generating a Ed25519 key fair first off all it is needed to generate a subsequent seed from a Bip32 path and from that point on the key pair can be derived.
+For generating a Ed25519 key fair first of all it is needed to generate a subsequent Ed25519 seed from a BIP32 path and from that point on the key pair can be derived.
 
 ```typescript
 const keyPairs: IKeyPair[] = [];
 
 for (const path of paths) {
-    const addressSeed = baseSeed.generateSeedFromPath(new Bip32Path(path));
+    // Master seed was generated previously
+    const addressSeed = masterSeed.generateSeedFromPath(new Bip32Path(path));
     const addressKeyPair = addressSeed.keyPair();
     keyPairs.push(addressKeyPair);
 
@@ -129,27 +130,35 @@ for (const path of paths) {
 }
 ```
 
-For instance
+As the keys are generated as byte arrays (`UInt8Array`) it is necessary to encode them using displayable characters, in this case,  hexadecimal characters. The trailing `true` parameter indicates that the `0x` prefix shall be included in the representation.
+
+You can observe that they key pairs generated are of the form:
 
 `0x6f0fa2f7a9d5fbd221c20f54d944378acb871dcdeafc3761e73d7f0aa05c75356f8eeee559daa287ec40a3a7113e88df2fc27bc77819e6d3d146a7dc7a4e939c`
 `0x6f8eeee559daa287ec40a3a7113e88df2fc27bc77819e6d3d146a7dc7a4e939c`
 
-You can see the the Ed25519 private key contains 128 hex chars that corresponds to 64 bytes. Conversely, the public key can be represented using 64 hex chars i.e. 32 bytes.
+The Ed25519 private key contains `128` hex chars that corresponds to `64` bytes. Conversely, the public key can be represented using `64` hex chars i.e. `32` bytes.
 
-At this point in time we have our asymmetric cryptography set but we need to generate the final address that will be used in the Shimmer network.
+At this point in time we have our asymmetric cryptography set but we need to generate the final addresses that will be used in the Shimmer network.
 
 ## Final addresses
 
-As it usually happens in Blockchain the addresses used are derived from a public key by hashing it. In the case of Stardust, they are derived from the Ed25519 public key.
+As it usually happens in Blockchain, the addresses used are derived from a public key by hashing it. In the case of Stardust, they are derived from the Ed25519 public key.
 
-There are two different address formats named as the Ed25519 format (which it is just a hash of the Ed25519 public key) and a more readable format which complies with [Bech32](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki). In the case of Shimmer the Bech32 human readable part (HRP) used is `smr` whereas `rms` is used for the testnet. Those values are also provided as part of the info primitive of the protocol (more on this later)
+There are two different address formats:
+
+* the Ed25519 format (which it is just a hash of the Ed25519 public key)
+
+* an easy to be identified and error resistant format which complies with [BECH32](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki). In the case of Shimmer the BECH32 human readable part (HRP) used is `smr`, whereas `rms` is used for the testnet. Those HRPs are also provided as metadata elements of the `info` primitive of the protocol (more on this later)
 
 ```typescript
+const finalAddresses: { ed25519: string, bech32: string }[] = [];
+
 for (const keyPair of keyPairs) {
     const ed25519Address = new Ed25519Address(keyPair.publicKey);
     // Address in bytes
     const publicKeyAddress = ed25519Address.toAddress();
-
+    // Conversion to BECH32
     const bech32Addr = Bech32Helper.toBech32(ED25519_ADDRESS_TYPE, publicKeyAddress, "rms");
 
     const finalAddress = {
@@ -162,6 +171,8 @@ for (const keyPair of keyPairs) {
 }
 ```
 
+You can observe that the BECH32 address is generated from the Ed25519 address which it is a hash of the public key. 
+
 Resulting in:
 
 ```text
@@ -170,3 +181,17 @@ Resulting in:
   bech32: 'rms1qqtfdcmnt6y8rnnss6hk4xfqux3ms0xl3vn94h6ynlztm2rtj83tk9qkzrx'
 }
 ```
+
+You can observe that the Ed25519 format has a length of `64` hex chars (32 bytes) as the Ed25519 public key. On the other hand the BECH32 address starts with `rms` or `smr` and continues with a `1` character.
+
+At any point in time it is possible to transform the BECH32 address into a Ed25519 address as follows:
+
+```typescript
+const ed25519Addr = Bech32Helper.fromBech32(bech32Address, "rms").addressBytes;
+```
+
+## Issuing a Value Transaction
+
+### Sending funds to an initial address
+
+Once we have a set of addresses and in order to experiment with value transactions it is necessary to have some funds. We are going to do our experiments with the testnet and request some initial funds to the [testnet Shimmer faucet](https://faucet.testnet.shimmer.network/). 
