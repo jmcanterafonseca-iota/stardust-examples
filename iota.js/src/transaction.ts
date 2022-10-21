@@ -8,7 +8,7 @@ import {
     ED25519_SIGNATURE_TYPE,
     IBasicOutput,
     IBlock,
-    IndexerPluginClient, ITransactionEssence, ITransactionPayload, IUTXOInput, serializeTransactionEssence, SIGNATURE_UNLOCK_TYPE, SingleNodeClient, TransactionHelper, TRANSACTION_ESSENCE_TYPE, TRANSACTION_PAYLOAD_TYPE, UnlockTypes
+    IndexerPluginClient, IReferenceUnlock, ISignatureUnlock, ITransactionEssence, ITransactionPayload, IUTXOInput, METADATA_FEATURE_TYPE, REFERENCE_UNLOCK_TYPE, serializeTransactionEssence, SIGNATURE_UNLOCK_TYPE, SingleNodeClient, TAG_FEATURE_TYPE, TransactionHelper, TRANSACTION_ESSENCE_TYPE, TRANSACTION_PAYLOAD_TYPE, UnlockTypes
 } from "@iota/iota.js";
 import { NeonPowProvider } from "@iota/pow-neon.js";
 // import { NodePowProvider } from "@iota/pow-node.js";
@@ -48,6 +48,9 @@ if (!amount) {
     process.exit(-1);
 }
 
+const data = process.argv[7];
+const tag = process.argv[8];
+
 const privateKeyOrigin = Converter.hexToBytes(privateKeyOriginHex);
 
 async function run() {
@@ -63,13 +66,38 @@ async function run() {
         hasStorageDepositReturn: false
     });
 
-    // The output we are going to use to transfer the funds
-    const consumedOutputId = outputs.items[0];
-    const consumedOutput = (await client.output(consumedOutputId)).output;
+    // Amount to be sent
+    const amountToSend = bigInt(amount);
 
-    // Prepare Inputs for the transaction
-    const input: IUTXOInput = TransactionHelper.inputFromOutputId(consumedOutputId);
-    console.log("Input: ", input, '\n');
+    const inputs: IUTXOInput[] = [];
+    const consumedOutputs: IBasicOutput[] = [];
+
+    let inputAmount = bigInt(0);
+
+    // Find enough inputs to cover the transaction
+    for (let j = 0; j < outputs.items.length; j++) {
+        // The output we are going to use to transfer the funds
+        const consumedOutputId = outputs.items[j];
+        const outputContent = await client.output(consumedOutputId);
+        
+        consumedOutputs.push(outputContent.output as IBasicOutput);
+        console.log("Consumed Output amount: ", outputContent.output.amount);
+
+        // Prepare Inputs for the transaction
+        inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
+        inputAmount = inputAmount.add(bigInt(outputContent.output.amount));
+
+        console.log(inputAmount);
+
+        // Check if we have enough input
+        if (inputAmount.greater(amountToSend)) {
+            break;
+        }
+    }
+
+    if (inputAmount.lesser(amountToSend)) {
+        throw new Error("There are not enough funds");
+    }
 
     // ED25519 destination address
     const destAddress = Bech32Helper.fromBech32(bech32AddressDestination, "rms");
@@ -84,9 +112,6 @@ async function run() {
         console.error("Cannot convert origin address");
         return;
     }
-
-    // 0.05 Shimmies sent
-    const amountToSend = bigInt(Number.parseInt(amount));
 
     // Then create the new output
     const basicOutput: IBasicOutput = {
@@ -105,10 +130,24 @@ async function run() {
         features: []
     };
 
+    if (data) {
+        basicOutput.features?.push({
+            type: METADATA_FEATURE_TYPE,
+            data: Converter.utf8ToHex(data, true)
+        })
+    }
+
+    if (tag) {
+        basicOutput.features?.push({
+            type: TAG_FEATURE_TYPE,
+            tag: Converter.utf8ToHex(tag, true)
+        })
+    }
+
     // The remaining output remains in the origin address
     const remainderBasicOutput: IBasicOutput = {
         type: BASIC_OUTPUT_TYPE,
-        amount: bigInt(consumedOutput.amount).minus(amountToSend).toString(),
+        amount: inputAmount.minus(amountToSend).toString(),
         nativeTokens: [],
         unlockConditions: [
             {
@@ -123,16 +162,15 @@ async function run() {
     };
 
     // 4. Get inputs commitment
-    const inputsCommitment = TransactionHelper.getInputsCommitment([consumedOutput]);
+    const inputsCommitment = TransactionHelper.getInputsCommitment(consumedOutputs);
 
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
         type: TRANSACTION_ESSENCE_TYPE,
         networkId: protocolInfo.networkId,
-        inputs: [input],
+        inputs,
         inputsCommitment,
-        outputs: [basicOutput, remainderBasicOutput],
-        payload: undefined
+        outputs: [basicOutput, remainderBasicOutput]
     };
 
     const wsTsxEssence = new WriteStream();
@@ -144,8 +182,10 @@ async function run() {
 
     console.log("Transaction Essence: ", transactionEssence);
 
-    // Unlock conditions
-    const unlockCondition: UnlockTypes = {
+    const unlocks: UnlockTypes[] = [];
+
+    // Main unlock condition 
+    const unlockCondition: ISignatureUnlock = {
         type: SIGNATURE_UNLOCK_TYPE,
         signature: {
             type: ED25519_SIGNATURE_TYPE,
@@ -154,20 +194,29 @@ async function run() {
         }
     };
 
+    unlocks.push(unlockCondition);
+
+    for (let j = 1; j < inputs.length; j++) {
+        const additionalUnlock: IReferenceUnlock = {
+            type: REFERENCE_UNLOCK_TYPE,
+            reference: j - 1
+        };
+
+        unlocks.push(additionalUnlock);
+    }
+
     // And now submitting a block with the transaction payload
     const transactionPayload: ITransactionPayload = {
         type: TRANSACTION_PAYLOAD_TYPE,
         essence: transactionEssence,
-        unlocks: [unlockCondition]
+        unlocks
     };
     console.log("Transaction payload: ", transactionPayload);
 
-    const tips = await client.tips();
-
-    // 8. Create Block
+    // Create Block
     const block: IBlock = {
         protocolVersion: DEFAULT_PROTOCOL_VERSION,
-        parents: tips.tips,
+        parents: [],
         payload: transactionPayload,
         nonce: "0",
     };
