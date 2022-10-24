@@ -25,7 +25,7 @@ In order to run a similar code than the one explained by this tutorial you need:
 
 * Auxiliary libraries, `@iota/crypto.js` `@iota/util.js`
 
-* Access to a Stardust Node (Hornet 2.0.0), for instance, the Shimmer testnet Nodes at ["https://api.testnet.shimmer.network"]("https://api.testnet.shimmer.network").
+* Access to a Stardust Node (Hornet 2.0.0), for instance, the Shimmer testnet Nodes at [https://api.testnet.shimmer.network](https://api.testnet.shimmer.network).
 
 * To run the Proof of Work (PoW) computation it would be advisable to count with the Neon-Pow package. Another alternative is that you spin out your own Node configured to perform the PoW remotely.
 
@@ -219,30 +219,30 @@ If you know an output ID you can query the details of an output through the Node
 First of all you can connect to your node as follows:
 
 ```typescript
-    const API_ENDPOINT = "https://api.testnet.shimmer.network";
-    const client = new SingleNodeClient(API_ENDPOINT);
-    const protocolInfo = await client.protocolInfo();
+const API_ENDPOINT = "https://api.testnet.shimmer.network";
+const client = new SingleNodeClient(API_ENDPOINT);
+const protocolInfo = await client.protocolInfo();
 
-    console.log(protocolInfo);
+console.log(protocolInfo);
 ```
 
 With the code above you can get some metadata of the network including the HRP for the BECH32 addresses as it was formerly explained:
 
-```javascript
+```json
 {
-  networkName: 'testnet',
-  networkId: '8342982141227064571',
-  bech32Hrp: 'rms',
-  minPowScore: 1500
+  "networkName": "testnet",
+  "networkId": "8342982141227064571",
+  "bech32Hrp": "rms",
+  "minPowScore": 1500
 }
 ```
 
 Through the interface exposed by the `iota.js` `SingleNodeClient` you can get the details of your output, in our example:
 
 ```typescript
-    const outputID = "0xcba9a6616df8e8e323d8203ea5d1a42e2e7c64dc9ead6b59f5d26bdc301efa540000";
-    const outputDetails = await client.output(outputID);
-    console.log(outputDetails);
+const outputID = "0xcba9a6616df8e8e323d8203ea5d1a42e2e7c64dc9ead6b59f5d26bdc301efa540000";
+const outputDetails = await client.output(outputID);
+console.log(outputDetails);
 ```
 
 ```json
@@ -274,44 +274,70 @@ Through the interface exposed by the `iota.js` `SingleNodeClient` you can get th
 
 The output details contain two different groups of information:
 
-* metadata that conveys the status of the output on the Ledger
-* the output details including the type of output (3 for value outputs), the amount (in Glows) and the unlock conditions. You can observe that the unlock conditions contain the (Ed22519) public key hash of our initial address address. That means that only the the one who knows the private key corresponding to that public key hash can unlock this output and use the corresponding funds. The protocol defines other possible unlock conditions that will be introduced later on.
+* *metadata* that conveys the status of the output on the Ledger
+
+* the *output details* including the type of output (`3` for value outputs), the amount (in Glows) and the unlock conditions. You can observe that the unlock conditions contain the (Ed22519) public key hash of our initial address address. That means that only the  one who knows the private key corresponding to that public key hash can unlock this output and use the corresponding funds. The protocol defines other possible unlock conditions that will be introduced later on.
 
 ## Transferring funds
 
-Destination address
+In this example we are going to use the following addresses declared as constants:
 
-ed25519: '0xbc9a935696546212c237e49e881fc6bdbd90bd0ec6140391982172f05a01b095',
-bech32: 'rms1qz7f4y6kje2xyykzxljfazqlc67mmy9apmrpgqu3nqsh9uz6qxcf2zqse0d'
+* Origin address: `rms1qp5kej93urfvrc5lhuay7jgupjwuwvxxunzwp59tvqg7nufqntcpxp26uj8` or `0x696cc8b1e0d2c1e29fbf3a4f491c0c9dc730c6e4c4e0d0ab6011e9f1209af013` in Ed25519 format.
 
-For transferring funds it is needed to:
+* Destination address: `rms1qz7f4y6kje2xyykzxljfazqlc67mmy9apmrpgqu3nqsh9uz6qxcf2zqse0d` or `0xbc9a935696546212c237e49e881fc6bdbd90bd0ec6140391982172f05a01b095` in Ed25519 format.
 
-* Select the outputs to be consumed (the inputs)
-* Provide the signatures that unlock those inputs as a proof of controlling themselves
-* Determine the outputs that will be generated
-* Provide the unlock conditions for those outputs
+```typescript
+const 
+```
+
+For transferring funds the following steps have to be taken:
+
+* Select the output to be consumed (that will turn into transaction input)
+
+* Provide the signature that unlocks such an input
+
+* Determine the new outputs that will be generated
+
+* Provide the unlock conditions for such outputs
+
 * Wrap the inputs and outputs into a transaction payload
-* Attach the transaction payload into a block
-* Submit the block 
 
-In our example the output to be consumed is the one that holds the initial funds transferred by the testnet Faucet
+* Sign such a transaction payload so that inputs can be unlocked
+
+* Attach the transaction payload into a block
+
+* Submit such a block
+
+### Preparing input
+
+In our example the output to be consumed is the one that holds the initial funds transferred by the testnet Faucet. As the unit of measurement is the Glow it is needed to use a `BigInt` data type to perform arithmetic operations. In this case the value to be transferred is `50000` Glow.
+
+An input is represented by the type `IUTXOInput` and can be easily obtained from an output ID as shown below.
 
 ```typescript
 const consumedOutputId = "0xcba9a6616df8e8e323d8203ea5d1a42e2e7c64dc9ead6b59f5d26bdc301efa540000";
 const outputDetails = await client.output(consumedOutputId);
-const totalFunds = binInt(outputDetails.output.amount);
+const totalFunds = bigInt(outputDetails.output.amount);
 
 const amountToSend = bigInt("50000");
 
 const inputs: IUTXOInput[] = [];
-const outputs: IBasicOutput[] = [];
         
 inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
 ```
 
-New outputs are defined as follows:
+### Preparing outputs
+
+In this case two new outputs are generated:
+
+* The output where the `50000` Glows will now reside (associated to the destination address)
+
+* The output where the remaining funds will stay (associated to our original address)
 
 ```typescript
+
+const outputs: IBasicOutput[] = [];
+
 const basicOutput: IBasicOutput = {
     type: BASIC_OUTPUT_TYPE,
     amount: amountToSend.toString(),
@@ -327,21 +353,71 @@ const basicOutput: IBasicOutput = {
     ],
     features: []
 };
+```
 
+You can observe how a basic output is defined using the `type` field. Concerning the unlock conditions, we are using as unlock condition: "it shall be the one who controls the specified address" i.e the one who knows the corresponding private key.
+
+The output that will hold the remaining funds is as follows. The amount of funds, obviously, will be the total funds of the input minus the amount now hold by the new output. The unlock condition in this case will correspond to the original Ed25519 address.
+
+```typescript
 // The remaining output remains in the origin address
 const remainderBasicOutput: IBasicOutput = {
     type: BASIC_OUTPUT_TYPE,
-    amount: inputAmount.minus(amountToSend).toString(),
+    amount: totalFunds.minus(amountToSend).toString(),
     nativeTokens: [],
     unlockConditions: [
         {
             type: ADDRESS_UNLOCK_CONDITION_TYPE,
             address: {
                 type: ED25519_ADDRESS_TYPE,
-                pubKeyHash: Converter.bytesToHex(originAddress.addressBytes, true)
+                pubKeyHash: originAddress
             }
         }
     ],
     features: []
 };
+
+outputs.push(basicOutput);
+outputs.push(remainderBasicOutput);
 ```
+
+### Creating a transaction payload
+
+First of all a transaction essence has to be created as it will be used to calculate a hash for the corresponding signature.
+The transaction essence must include the commitments to the inputs so that it is ensured that those outputs already exist at the time of submitting the transaction:
+
+```typescript
+const inputsCommitment = TransactionHelper.getInputsCommitment([outputDetails.output]);
+
+const transactionEssence: ITransactionEssence = {
+    type: TRANSACTION_ESSENCE_TYPE,
+    networkId: protocolInfo.networkId,
+    inputs,
+    inputsCommitment,
+    outputs
+};
+
+const wsTsxEssence = new WriteStream();
+serializeTransactionEssence(wsTsxEssence, transactionEssence);
+const essenceFinal = wsTsxEssence.finalBytes();
+
+const essenceHash = Blake2b.sum256(essenceFinal);
+```
+
+Once the hash of the transaction essence is calculated the final transaction payload can be created by adding the corresponding signature unlock 
+
+```typescript
+const unlockCondition: ISignatureUnlock = {
+    type: SIGNATURE_UNLOCK_TYPE,
+    signature: {
+        type: ED25519_SIGNATURE_TYPE,
+        publicKey: sourcePublicKey,
+        signature: Converter.bytesToHex(Ed25519.sign(privateKeyOrigin, essenceHash), true)
+    }
+};
+```
+
+### Submit block
+
+
+### Checking results
