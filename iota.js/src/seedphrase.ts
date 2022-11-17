@@ -15,7 +15,7 @@ const API_ENDPOINT = "https://api.testnet.shimmer.network";
 
 async function run() {
     /* Generate a random mnemonic. */
-    const randomMnemonic = Bip39.randomMnemonic();
+    const randomMnemonic = "tonight brave alarm donate art moon duck dove income bag ask title bamboo fold soft state author twist shoe shiver unusual gravity source venture";
     console.log("\tMnemonic:", randomMnemonic);
 
     const addressGeneratorAccountState = {

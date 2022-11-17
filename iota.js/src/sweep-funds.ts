@@ -8,10 +8,12 @@ import {
     IBasicOutput,
     IBlock,
     IndexerPluginClient,
+    IReferenceUnlock,
     ISignatureUnlock,
     ITransactionEssence,
     ITransactionPayload,
     IUTXOInput,
+    REFERENCE_UNLOCK_TYPE,
     serializeTransactionEssence,
     SIGNATURE_UNLOCK_TYPE,
     SingleNodeClient,
@@ -30,35 +32,37 @@ async function run() {
     const protocolInfo = await client.protocolInfo();
 
     // For performing transactions
-    const sourceAddress = "0x696cc8b1e0d2c1e29fbf3a4f491c0c9dc730c6e4c4e0d0ab6011e9f1209af013";
-    const sourceAddressBech32 = "rms1qp5kej93urfvrc5lhuay7jgupjwuwvxxunzwp59tvqg7nufqntcpxp26uj8";
+    const sourceAddressBech32 = "rms1qpj8775lmqcudesrfel9f949ptk30mma9twjqza5el08vjww9v927ywt70u";
     const destAddress = "0x647f7a9fd831c6e6034e7e5496a50aed17ef7d2add200bb4cfde7649ce2b0aaf";
-    const sourceAddressPublicKey = "0x5782872db1a2192748e4973a2571e7466d2ec26e54bb9859244f90a25c198eec";
-    const sourceAddressPrivateKey = "0x003dd7e81dfd214e2a873322157aaa82a2db5a685a32720d65f2621fbffb67215782872db1a2192748e4973a2571e7466d2ec26e54bb9859244f90a25c198eec";
-
-    let consumedOutputId = "0x4884c19d5d18240718d8512cbb75a6ab82dc24125358c0a450c9fd7b1ae6cee00100";
+    const sourceAddressPublicKey = "0x55419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
+    const sourceAddressPrivateKey = "0xa060fffb21412a1d1a1afee3e0f4a3ac152a0098bbf1c5096bfad72e45fa4e4455419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
 
     const inputs: IUTXOInput[] = [];
     const outputs: IBasicOutput[] = [];
 
-    const amountToSend = bigInt("50000");
 
     const indexerPlugin = new IndexerPluginClient(client);
     const outputList = await indexerPlugin.basicOutputs({
         addressBech32: sourceAddressBech32
     });
 
-    consumedOutputId = outputList.items[0];
+    const consumedOutputId1 = outputList.items[0];
+    const consumedOutputId2 = outputList.items[1];
 
-    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
+    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId1));
+    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId2));
 
-    const outputDetails = await client.output(consumedOutputId);
-    const totalFunds = bigInt(outputDetails.output.amount);
+    const output1 = await client.output(consumedOutputId1);
+    const output2 = await client.output(consumedOutputId2);
+
+    // The two outputs are combined into only one output
+    const amount1 = bigInt(output1.output.amount);
+    const amount2 = bigInt(output2.output.amount);
 
     // New output
     const basicOutput: IBasicOutput = {
         type: BASIC_OUTPUT_TYPE,
-        amount: amountToSend.toString(),
+        amount: amount1.add(amount2).toString(),
         nativeTokens: [],
         unlockConditions: [
             {
@@ -72,28 +76,10 @@ async function run() {
         features: []
     };
 
-    // The remaining output remains in the origin address
-    const remainderBasicOutput: IBasicOutput = {
-        type: BASIC_OUTPUT_TYPE,
-        amount: totalFunds.minus(amountToSend).toString(),
-        nativeTokens: [],
-        unlockConditions: [
-            {
-                type: ADDRESS_UNLOCK_CONDITION_TYPE,
-                address: {
-                    type: ED25519_ADDRESS_TYPE,
-                    pubKeyHash: sourceAddress
-                }
-            }
-        ],
-        features: []
-    };
-
     outputs.push(basicOutput);
-    outputs.push(remainderBasicOutput);
 
     // 4. Get inputs commitment
-    const inputsCommitment = TransactionHelper.getInputsCommitment([outputDetails.output]);
+    const inputsCommitment = TransactionHelper.getInputsCommitment([output1.output, output2.output]);
 
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
@@ -114,7 +100,7 @@ async function run() {
     console.log("Transaction Essence: ", transactionEssence);
 
     // Main unlock condition 
-    const unlockCondition: ISignatureUnlock = {
+    const unlockCondition1: ISignatureUnlock = {
         type: SIGNATURE_UNLOCK_TYPE,
         signature: {
             type: ED25519_SIGNATURE_TYPE,
@@ -123,10 +109,15 @@ async function run() {
         }
     };
 
+    const unlockCondition2: IReferenceUnlock = {
+        type: REFERENCE_UNLOCK_TYPE,
+        reference: 0
+    };
+
     const transactionPayload: ITransactionPayload = {
         type: TRANSACTION_PAYLOAD_TYPE,
         essence: transactionEssence,
-        unlocks: [unlockCondition]
+        unlocks: [unlockCondition1, unlockCondition2]
     };
 
     // Create Block
