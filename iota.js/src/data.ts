@@ -9,7 +9,7 @@ import { NeonPowProvider } from "@iota/pow-neon.js";
 import { Converter } from "@iota/util.js";
 
 
-const API_ENDPOINT = "https://api.testnet.shimmer.network";
+const API_ENDPOINT = "http://52.213.240.168:14265";
 
 // This address has some tokens from the Faucet
 const data = process.argv[2];
