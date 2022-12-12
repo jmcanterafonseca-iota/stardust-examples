@@ -57,7 +57,7 @@ async function run() {
 
     const outputs: (IAliasOutput | IBasicOutput)[] = [];
 
-    // The amount of funds tob e sent to an alias output
+    // The amount of funds to be sent to an alias output so that it covers its byte costs
     const amountToSend = bigInt("60000");
 
     inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
@@ -73,6 +73,7 @@ async function run() {
         type: ALIAS_OUTPUT_TYPE,
         amount: amountToSend.toString(),
         aliasId: Converter.bytesToHex(initialAliasId, true),
+        stateMetadata: "0x12345678",
         stateIndex: 0,
         foundryCounter: 0,
         unlockConditions: [
@@ -171,7 +172,8 @@ async function run() {
     console.log("Output Id:", outputId);
 
     const addrHash = Blake2b.sum256(Converter.hexToBytes(outputId));
-    console.log("Alias Address:", Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, addrHash, protocolInfo.bech32Hrp));
+    console.log("Alias Address (Hex format):", Converter.bytesToHex(addrHash, true));
+    console.log("Alias Address (Bech32 format):", Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, addrHash, protocolInfo.bech32Hrp));
 }
 
 function computeTransactionIdFromTransactionPayload(payload: ITransactionPayload) {

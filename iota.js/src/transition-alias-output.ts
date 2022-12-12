@@ -1,15 +1,10 @@
 import { Blake2b, Ed25519 } from "@iota/crypto.js";
 import {
-    ADDRESS_UNLOCK_CONDITION_TYPE,
-    ALIAS_OUTPUT_TYPE,
-    BASIC_OUTPUT_TYPE,
     DEFAULT_PROTOCOL_VERSION,
-    ED25519_ADDRESS_TYPE,
     ED25519_SIGNATURE_TYPE,
-    GOVERNOR_ADDRESS_UNLOCK_CONDITION_TYPE,
     IAliasOutput,
-    IBasicOutput,
     IBlock,
+    IndexerPluginClient,
     ISignatureUnlock,
     ITransactionEssence,
     ITransactionPayload,
@@ -17,83 +12,53 @@ import {
     serializeTransactionEssence,
     SIGNATURE_UNLOCK_TYPE,
     SingleNodeClient,
-    STATE_CONTROLLER_ADDRESS_UNLOCK_CONDITION_TYPE,
     TransactionHelper,
     TRANSACTION_ESSENCE_TYPE,
     TRANSACTION_PAYLOAD_TYPE,
 } from "@iota/iota.js";
 import { NeonPowProvider } from "@iota/pow-neon.js";
 import { Converter, WriteStream } from "@iota/util.js";
-import bigInt from "big-integer";
 
 const API_ENDPOINT = "https://api.testnet.shimmer.network";
 
 // The aliasId on the Ledger 
 const aliasId = process.argv[2];
 if (!aliasId) {
-    console.error("Please provide an alias Id to transition");
+    console.error("Please provide an alias Id to perform transition");
     process.exit(-1);
 }
 
-const stateIndexStr = process.argv[3];
-if (!stateIndexStr) {
-    console.error("Please provide an state index to transition");
-    process.exit(-1);
-}
-
-const stateIndex = Number(stateIndexStr);
 
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const protocolInfo = await client.protocolInfo();
 
-    const stateControllerPrivateKey = "";
-    // Ed25519 Addresses (PubKeyHash)
-    const stateControllerAddress = "0x647f7a9fd831c6e6034e7e5496a50aed17ef7d2add200bb4cfde7649ce2b0aaf";
-
-    const governorAddress = "";
-
-    const sourceAddressPublicKey = "";
-    const sourceAddressPrivateKey = "";
+    const stateControllerPubKey = "0x55419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
+    const stateControllerPrivateKey = "0xa060fffb21412a1d1a1afee3e0f4a3ac152a0098bbf1c5096bfad72e45fa4e4455419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
 
     const inputs: IUTXOInput[] = [];
-
     const outputs: IAliasOutput[] = [];
 
-    // The amount of funds tob e sent to an alias output
-    const amountToSend = bigInt("60000");
+    const indexerPlugin = new IndexerPluginClient(client);
+    const outputList = await indexerPlugin.alias(aliasId);
+    const consumedOutputId = outputList.items[0];
+    console.log("Consumed Output Id", consumedOutputId);
 
-    const consumedOutputDetails = await client.output("");
+    const initialAliasOutputDetails = await client.output(consumedOutputId);
+
+    const initialAliasOutput: IAliasOutput = initialAliasOutputDetails.output as IAliasOutput;
 
     // New output. Alias output. 
-    const aliasOutput: IAliasOutput = {
-        type: ALIAS_OUTPUT_TYPE,
-        amount: amountToSend.toString(),
-        aliasId,
-        stateIndex,
-        foundryCounter: 0,
-        unlockConditions: [
-            {
-                type: STATE_CONTROLLER_ADDRESS_UNLOCK_CONDITION_TYPE,
-                address: {
-                    type: ED25519_ADDRESS_TYPE,
-                    pubKeyHash: stateControllerAddress
-                }
-            },
-            {
-                type: GOVERNOR_ADDRESS_UNLOCK_CONDITION_TYPE,
-                address: {
-                    type: ED25519_ADDRESS_TYPE,
-                    pubKeyHash: governorAddress
-                }
-            }
-        ]
-    };
+    const nextAliasOutput: IAliasOutput = JSON.parse(JSON.stringify(initialAliasOutput));
+    nextAliasOutput.stateIndex++;
+    console.log("New state index: ", nextAliasOutput.stateIndex);
+    nextAliasOutput.aliasId = aliasId;
 
-    outputs.push(aliasOutput);
+    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
+    outputs.push(nextAliasOutput);
 
     // 4. Get inputs commitment
-    const inputsCommitment = TransactionHelper.getInputsCommitment([consumedOutputDetails.output]);
+    const inputsCommitment = TransactionHelper.getInputsCommitment([initialAliasOutput]);
 
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
@@ -118,8 +83,8 @@ async function run() {
         type: SIGNATURE_UNLOCK_TYPE,
         signature: {
             type: ED25519_SIGNATURE_TYPE,
-            publicKey: sourceAddressPublicKey,
-            signature: Converter.bytesToHex(Ed25519.sign(Converter.hexToBytes(sourceAddressPrivateKey), essenceHash), true)
+            publicKey: stateControllerPubKey,
+            signature: Converter.bytesToHex(Ed25519.sign(Converter.hexToBytes(stateControllerPrivateKey), essenceHash), true)
         }
     };
 
