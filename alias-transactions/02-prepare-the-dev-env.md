@@ -1,5 +1,5 @@
 ---
-description: "Prepare a development environment to run the value transactions in iota.js tutorial."
+description: "Prepare a development environment to run the alias transactions in iota.js tutorial."
 image: /img/client_banner.png
 keywords:
 
@@ -49,20 +49,20 @@ The tutorial's codebase uses several predefined Shimmer addresses and outputs. I
 
 ### Available Commands
 
-#### Create Alias Output
+#### Mint Alias Output
 
-You can run the `create-alias-output` script by running the following command from the example's directory:
+You can run the `mint-new-alias-script` script by running the following command from the example's directory:
 
 ```bash
-npm run create
+npm run mint
 ```
 
 #### Transition Alias Output
 
-You can run the `transition-alias-output` script by running the following command from the example's directory:
+You can run the `alias-transaction` script by running the following command from the example's directory:
 
 ```bash
-npm run transition
+npm run alias-transaction
 ```
 
 ## Create Your package.json File

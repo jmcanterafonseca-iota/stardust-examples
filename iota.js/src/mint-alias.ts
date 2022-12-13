@@ -172,8 +172,8 @@ async function run() {
     console.log("Output Id:", outputId);
 
     const addrHash = Blake2b.sum256(Converter.hexToBytes(outputId));
-    console.log("Alias Address (Hex format):", Converter.bytesToHex(addrHash, true));
-    console.log("Alias Address (Bech32 format):", Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, addrHash, protocolInfo.bech32Hrp));
+    console.log("Alias ID:", Converter.bytesToHex(addrHash, true));
+    console.log("Alias Address:", Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, addrHash, protocolInfo.bech32Hrp));
 }
 
 function computeTransactionIdFromTransactionPayload(payload: ITransactionPayload) {

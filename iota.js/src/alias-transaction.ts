@@ -51,6 +51,7 @@ async function run() {
     // New output. Alias output. 
     const nextAliasOutput: IAliasOutput = JSON.parse(JSON.stringify(initialAliasOutput));
     nextAliasOutput.stateIndex++;
+    nextAliasOutput.stateMetadata = "0x987654";
     console.log("New state index: ", nextAliasOutput.stateIndex);
     nextAliasOutput.aliasId = aliasId;
 
