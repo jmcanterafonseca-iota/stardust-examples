@@ -38,6 +38,12 @@ if (!consumedOutputId) {
     process.exit(-1);
 }
 
+const fundsToTransfer = process.argv[3];
+if (!fundsToTransfer) {
+    console.error("Please provide funds to transfer to your alias");
+    process.exit(-1);
+}
+
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const protocolInfo = await client.protocolInfo();
@@ -58,7 +64,7 @@ async function run() {
     const outputs: (IAliasOutput | IBasicOutput)[] = [];
 
     // The amount of funds to be sent to an alias output so that it covers its byte costs
-    const amountToSend = bigInt("60000");
+    const amountToSend = bigInt(fundsToTransfer);
 
     inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
 
