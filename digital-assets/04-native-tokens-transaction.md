@@ -1,5 +1,5 @@
 ---
-description: "Perform an Alias Transaction with iota.js."
+description: "Perform a transaction that involves native tokens with iota.js."
 image: /img/client_banner.png
 keywords:
 - tutorial
@@ -8,7 +8,7 @@ keywords:
 - transaction
 ---
 
-# Performing an Alias Transaction
+# Performing a transaction with native tokens
 
 The State Controller of an Alias can perform a transaction so that the Alias transits to a new state. The transaction generates a new Alias Output which Alias ID is the original one of the Alias. Remember that the alias ID remains constant regardless the Alias Output that holds the funds and the state metadata. It is the Alias Output Id the one which changes and once "spent" it is pruned from the ledger.
 

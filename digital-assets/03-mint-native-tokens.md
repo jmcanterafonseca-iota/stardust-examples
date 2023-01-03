@@ -26,7 +26,7 @@ In order to mint a new class of native tokens you need:
 
 ## Transfer funds to cover storage deposits
 
-The first step is to ensure that you have enough funds in your initial address to cover storage deposits. In the testnet you can do that by generating, through the Faucet. a new Basic Output controlled by your address, as we explained in previous tutorials.
+The first step is to ensure that you have enough funds in your initial address to cover storage deposits. In the testnet you can do that by generating, through the Faucet, a new Basic Output controlled by your address, as we explained in previous tutorials.
 
 For this tutorial concern, the address that holds initial set of funds (protocol-defined `SMR` tokens) to cover storage costs is: `rms1qqmh53jar5hx70jhu9xmlqshr0n6gusnj96rsmvxlewm536uf4g57wnm646`
 
@@ -46,7 +46,7 @@ We assume that the new Alias ID minted holds enough funds (protocol-defined toke
 
 ### Obtain the current Alias Output
 
-Once you have your Alias ID the first step is obtain the current Alias Output through the Indexer Plugin. That Alias Output will participate in a transaction that will result in the creation of a new Foundry Output and some minted native tokens.
+Once you have your Alias ID the first step is obtain its current unspent Alias Output through the Indexer Plugin. That Alias Output will participate in a transaction that will result in the creation of a new Foundry Output and some minted native tokens.
 
 ```typescript
 const aliasId = "0x8c81...";
@@ -132,6 +132,8 @@ const tokenClassId: string = TransactionHelper.constructTokenId(
 For the Alias ID initially mentioned in this tutorial you would obtain the following token class ID:
 
 `0x080e6284ef54774f66942ef48f0c98c6da6e5b4e3ed044e83bd8da43f5b01790cb0100000000`.
+
+Actually that token class ID is equal to the Foundry ID that will remain immutable regardless of the state changes of your Foundry.
 
 ## Define the Basic Output that will hold the initial batch of minted tokens
 
