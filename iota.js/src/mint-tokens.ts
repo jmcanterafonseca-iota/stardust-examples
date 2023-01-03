@@ -14,6 +14,7 @@ import {
     IMMUTABLE_ALIAS_UNLOCK_CONDITION_TYPE,
     IndexerPluginClient,
     ISignatureUnlock,
+    ISimpleTokenScheme,
     ITransactionEssence,
     ITransactionPayload,
     IUTXOInput,
@@ -73,17 +74,18 @@ async function run() {
 
     const mintedAmount = 128;
     const totalAmount = 512;
+    const tokenScheme: ISimpleTokenScheme = {
+        type: SIMPLE_TOKEN_SCHEME_TYPE,
+        mintedTokens: HexHelper.fromBigInt256(bigInt(mintedAmount)),
+        meltedTokens: HexHelper.fromBigInt256(bigInt(0)),
+        maximumSupply: HexHelper.fromBigInt256(bigInt(totalAmount)),
+    };
 
     const foundryOutput: IFoundryOutput = {
         type: FOUNDRY_OUTPUT_TYPE,
         amount: "0", // Not known yet
         serialNumber: 1,
-        tokenScheme: {
-            type: SIMPLE_TOKEN_SCHEME_TYPE,
-            mintedTokens: HexHelper.fromBigInt256(bigInt(mintedAmount)),
-            meltedTokens: HexHelper.fromBigInt256(bigInt(0)),
-            maximumSupply: HexHelper.fromBigInt256(bigInt(totalAmount)),
-        },
+        tokenScheme,
         unlockConditions: [
             {
                 // Foundry supports only this unlock condition!
@@ -97,9 +99,9 @@ async function run() {
         ]
     };
 
-    const tokenId = TransactionHelper.constructTokenId(
+    const tokenClassId: string = TransactionHelper.constructTokenId(
         nextAliasOutput.aliasId,
-        foundryOutput.serialNumber, 
+        foundryOutput.serialNumber,
         foundryOutput.tokenScheme.type
     );
 
@@ -110,7 +112,7 @@ async function run() {
             // We put all minted tokens in this output
             {
                 // tokenId is (serialized) controlling alias address + serialNumber + tokenSchemeType
-                id: tokenId,
+                id: tokenClassId,
                 amount: HexHelper.fromBigInt256(bigInt(mintedAmount))
             }
         ],
@@ -140,7 +142,7 @@ async function run() {
 
     console.log("Required Storage Deposit of the Foundry output: ", foundryStorageDeposit);
 
-    // Update amounts in outputs. Only leave the bare minimum in the alias and the foundry, put the rest into the basic output
+    // Update amounts in outputs. Only leave the bare minimum in the alias and the foundry
     nextAliasOutput.amount = initialFunds.minus(totalStorageFunds).toString();
     foundryOutput.amount = foundryStorageDeposit.toString();
     tokenFundsOutput.amount = tokenFundsStorageDeposit.toString();
@@ -199,7 +201,9 @@ async function run() {
     console.log("Calculating PoW, submitting block...");
     const blockId = await client.blockSubmit(block);
     console.log("Block Id:", blockId);
-    console.log("Native Token Id", tokenId);
+    console.log("Native Token Id", tokenClassId);
+
+    // TransactionHelper.resolveIdFromOutputId
 }
 
 run()
