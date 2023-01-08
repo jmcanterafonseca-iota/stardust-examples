@@ -2,7 +2,7 @@ Alias ID: 0x0e6284ef54774f66942ef48f0c98c6da6e5b4e3ed044e83bd8da43f5b01790cb
 Alias Address: rms1pq8x9p8023m57e559m6g7ryccmdxuk6w8mgyf6pmmrdy8adsz7gvks7nd7p
 
 
-Address that receives the native tokens:
+Address that receives the native tokens after being minted:
 
 Private Key 0xa060fffb21412a1d1a1afee3e0f4a3ac152a0098bbf1c5096bfad72e45fa4e4455419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa
 	Public Key 0x55419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa
@@ -11,7 +11,7 @@ Private Key 0xa060fffb21412a1d1a1afee3e0f4a3ac152a0098bbf1c5096bfad72e45fa4e4455
 
 Native Token Id 0x080e6284ef54774f66942ef48f0c98c6da6e5b4e3ed044e83bd8da43f5b01790cb0100000000
 
-Address that some native tokens are transferred to:
+Address that some native tokens are transferred to (and then melted):
 
 Private Key 0xc4e210cfc803a546a25d031cc869fdda21888c0fcc743597b9742da7952d05f5a5e76ad7bc824a679587a198def6166096331f1ba31cb700b550b38ff15db9b4
 Public Key 0xa5e76ad7bc824a679587a198def6166096331f1ba31cb700b550b38ff15db9b4

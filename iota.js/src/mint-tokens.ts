@@ -202,8 +202,6 @@ async function run() {
     const blockId = await client.blockSubmit(block);
     console.log("Block Id:", blockId);
     console.log("Native Token Id", tokenClassId);
-
-    // TransactionHelper.resolveIdFromOutputId
 }
 
 run()

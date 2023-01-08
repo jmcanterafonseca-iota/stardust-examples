@@ -1,14 +1,20 @@
 ---
-description: "Perform an Alias Transaction with iota.js."
+description: "Melt native tokens with iota.js."
 image: /img/client_banner.png
 keywords:
 - tutorial
 - alias
+- address
 - output
-- transaction
+- melt
+- foundry
+- native
+- token
+- digital
+- asset
 ---
 
-# Performing an Alias Transaction
+# Melting native tokens
 
 The State Controller of an Alias can perform a transaction so that the Alias transits to a new state. The transaction generates a new Alias Output which Alias ID is the original one of the Alias. Remember that the alias ID remains constant regardless the Alias Output that holds the funds and the state metadata. It is the Alias Output Id the one which changes and once "spent" it is pruned from the ledger.
 
