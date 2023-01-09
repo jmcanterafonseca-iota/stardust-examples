@@ -18,21 +18,19 @@ keywords:
 
 In order to mint a new class of native tokens you need:
 
-* An *unspent Output* that holds enough funds so that the storage costs of the different outputs involved can be covered. In the Testnet, you can [request funds through the Faucet](../value-transactions/request-funds-from-the-faucet/). Remember that storage costs must always be covered by **protocol-defined tokens** (`SMR`).
-* A *Token Scheme*, which includes a class ID for your native token, the initial supply (how many native tokens of that class are minted initially) and the maximum supply.
+* An initial *unspent Output* that holds enough funds so that the storage costs of the different Outputs involved can be covered. In the Testnet, you can [request funds through the Faucet](../value-transactions/request-funds-from-the-faucet/). Remember that storage costs must always be covered by **protocol-defined tokens** (`SMR`).
+* A *Token Scheme*, that defines a class of tokens with *initial supply* (how many native tokens of that class are minted initially) and *maximum supply*.
 * A *Foundry Output* that captures all the parameters and state related to your new class of native tokens.
-* An *Alias Address* that will be used to control the Foundry Output associated to your new class of native tokens. Any change made to the Foundry state will require the keys of the State Controller of this Alias Address and the corresponding state transition that will generate a subsequent Alias Output.
+* An *Alias Address* that will be used to control the Foundry Output associated to your new class of native tokens. Any change made to the Foundry state will require the keys of the State Controller of this Alias Address and the corresponding state transition that will generate a subsequent unspent Alias Output.
 * An *Address* to which the initial supply of native tokens (the ones initially minted) will be transferred to (through a Basic Output).
 
 ## Transfer funds to cover storage deposits
 
 The first step is to ensure that you have enough funds in your initial address to cover storage deposits. In the testnet you can do that by generating, through the Faucet, a new Basic Output controlled by your address, as we explained in previous tutorials.
 
-For this tutorial concern, the address that holds initial set of funds (protocol-defined `SMR` tokens) to cover storage costs is: `rms1qqmh53jar5hx70jhu9xmlqshr0n6gusnj96rsmvxlewm536uf4g57wnm646`
-
 ## Mint a new Alias ID
 
-In order to mint a new Alias ID you must follow the steps described by the previous tutorial. Please ensure that you transfer enough funds to this Alias so that it can cover later costs related to minting native tokens.
+In order to mint a new Alias ID you must follow the steps described by the [previous tutorial](). Please ensure that you transfer enough funds to this Alias so that it can cover later costs related to minting native tokens.
 
 For the purposes of this tutorial we are going to use an Alias as follows:
 
@@ -40,13 +38,13 @@ Alias Address: `rms1pzxgrrzzug2rhaug8d0tgcq33p2g65s4x4h8c9ym6nxkmaj3r5zeg5fxxa7`
 Alias ID: `0x8c818c42e2143bf7883b5eb4601188548d5215356e7c149bd4cd6df6511d0594`
 State Controller Address: `rms1qpj8775lmqcudesrfel9f949ptk30mma9twjqza5el08vjww9v927ywt70u`
 
-We assume that the new Alias ID minted holds enough funds (protocol-defined tokens) to cover the new Outputs that will be generated during this tutorial.
+During this tutorial part it is assumed that the new Alias ID minted holds enough funds (protocol-defined tokens) to cover the new Outputs that will be generated during this tutorial.
 
 ## Prepare the Alias Output
 
 ### Obtain the current Alias Output
 
-Once you have your Alias ID the first step is obtain its current unspent Alias Output through the Indexer Plugin. That Alias Output will participate in a transaction that will result in the creation of a new Foundry Output and some minted native tokens.
+Once you have your Alias ID the first step is obtain its current unspent Alias Output through the Indexer Plugin. Such an Alias Output will participate in a transaction that will result in the creation of a new Foundry Output and some minted native tokens.
 
 ```typescript
 const aliasId = "0x8c81...";
@@ -64,7 +62,7 @@ const initialAliasOutput: IAliasOutput = initialAliasOutputDetails.output as IAl
 
 In order to define the next Alias Output you need to trigger a transition of the UTXO machine associated to your Alias ID. The way to trigger such transition is to define a new Alias Output. The new Alias Output will increment the `stateIndex`. As you are associating to your Alias ID a new Foundry that will control your new native token class, the `foundryCounter` field must now be set to `1`.
 
-In the code below you can observe that the amount associated to the new Alias Output is set to `0`. That's done because initially you do not know how much funds shall remain on the next Alias Output. What it is sure is that the amount of funds remaining will be less than in the initial output, as you will be using some of those funds to cover the storage deposit of the new Outputs that will be generated during this process.
+In the code below you can observe that the amount associated to the new Alias Output is set to `0`. That's done because initially you do not know how much funds shall remain on the next Alias Output. What it is sure is that the amount of funds remaining will be less than in the initial Output, as you will be using some of those funds to cover the storage deposit of the new Outputs that will be generated during this process. (Remember that you could have involved other Outputs in this transaction to cover those storage costs).
 
 ```typescript
 const nextAliasOutput: IAliasOutput = JSON.parse(JSON.stringify(initialAliasOutput));
@@ -93,9 +91,9 @@ You can observe that we define the total amount supply, and the number of minted
 
 ## Define the Foundry Output
 
-Your next step to define the Foundry Output (`IFoundryOutput`) that will control your new Token Scheme. You set the serial number of the Foundry `1` in this case, the formerly defined token scheme and the unlock conditions. You can observe that the Foundry Output can only be unlocked by the Alias Address that controls it, that is, by the state controller of such an Alias Address.
+Your next step to define the Foundry Output (`IFoundryOutput`) that will control your new Token Scheme. You set the serial number of the Foundry (`1` in this case), the formerly defined token scheme and the unlock conditions. You can observe that the Foundry Output can only be unlocked by the Alias Address that controls it, that is, by the state controller of such an Alias Address.
 
-Likewise to the Alias Output, we deliberately set the amount to `0' as at this point in time we don't know yet the amount of protocol-defined tokens it would be needed to cover the storage deposit of this Output.
+Likewise to the Alias Output, we deliberately set the amount to `0`, as at this point in time we don't know yet the amount of protocol-defined tokens it would be needed to cover the storage deposit of this Output.
 
 ```typescript
 const foundryOutput: IFoundryOutput = {
@@ -106,7 +104,7 @@ const foundryOutput: IFoundryOutput = {
     unlockConditions: [
         {
             // Foundry supports only this unlock condition!
-            // It will be controlled through its lifetime by out alias
+            // It will be controlled through its lifetime by our alias
             type: IMMUTABLE_ALIAS_UNLOCK_CONDITION_TYPE,
             address: {
                 type: ALIAS_ADDRESS_TYPE,
@@ -133,11 +131,11 @@ For the Alias ID initially mentioned in this tutorial you would obtain the follo
 
 `0x080e6284ef54774f66942ef48f0c98c6da6e5b4e3ed044e83bd8da43f5b01790cb0100000000`.
 
-Actually that token class ID is equal to the Foundry ID that will remain immutable regardless of the state changes of your Foundry.
+Actually that token class ID is just the Foundry ID that will remain immutable regardless of the state changes of your Foundry.
 
 ## Define the Basic Output that will hold the initial batch of minted tokens
 
-As there is an initial set of minted tokens by the Foundry you are going to need a Basic Output to hold those native tokens. The definition of a Basic Output was already explained in our introduction tutorial. The only difference here is that this Basic Output will also hold the initial amount of minted native tokens, identified through its token class ID. As it happened with previous Outputs, you need to set the amount of protocol-defined tokens to `0` as you don't know yet the storage deposit cost.
+As there is an initial set of minted tokens by the Foundry, you are going to need a Basic Output to hold those native tokens. The definition of a Basic Output was already explained in our [introduction tutorial](). The only difference here is that this Basic Output will also hold the initial amount of minted native tokens, identified through its token class ID. As it happened with previous Outputs, you need to set the amount of protocol-defined tokens to `0` as you don't know yet the storage deposit cost.
 
 ```typescript
 const nativeTokenOwnerAddress = "0x647f....";
@@ -195,7 +193,7 @@ tokenFundsOutput.amount = tokenFundsStorageDeposit.toString();
 In this case this is a complex transaction that involves one input and three different outputs. The input is the Alias Output we obtained through our initial query to the indexer plugin. The Outputs are threefold:
 
 * The next Alias Output of our Alias Address
-* The Foundry Output
+* The initial Foundry Output
 * The Basic Output that holds the native token funds initially minted
 
 ```typescript

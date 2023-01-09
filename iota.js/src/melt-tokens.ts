@@ -11,12 +11,10 @@ import {
     IBlock,
     IFoundryOutput,
     IndexerPluginClient,
-    IReferenceUnlock,
     ISignatureUnlock,
     ITransactionEssence,
     ITransactionPayload,
     IUTXOInput,
-    REFERENCE_UNLOCK_TYPE,
     serializeTransactionEssence,
     SIGNATURE_UNLOCK_TYPE,
     SingleNodeClient,
@@ -60,12 +58,10 @@ async function run() {
 
     const indexerPlugin = new IndexerPluginClient(client);
     const outputList = await indexerPlugin.alias(aliasId);
-    const consumedOutputId = outputList.items[0];
-    console.log("Consumed Output Id", consumedOutputId);
+    const consumedOutputID = outputList.items[0];
+    console.log("Consumed Output Id", consumedOutputID);
 
-    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
-
-    const initialAliasOutputDetails = await client.output(consumedOutputId);
+    const initialAliasOutputDetails = await client.output(consumedOutputID);
     const initialAliasOutput: IAliasOutput = initialAliasOutputDetails.output as IAliasOutput;
 
     // Output 1. Alias output. 
@@ -82,8 +78,6 @@ async function run() {
     }
 
     const foundryOutputID = foundryList.items[0];
-
-    inputs.push(TransactionHelper.inputFromOutputId(foundryOutputID));
 
     const initialFoundryOutputDetails = await client.output(foundryOutputID);
     const initialFoundryOutput: IFoundryOutput = initialFoundryOutputDetails.output as IFoundryOutput;
@@ -111,15 +105,10 @@ async function run() {
     const outputWithTokensToMeltDetails = await client.output(outputWithTokensToMeltID);
     const outputWithTokensToMelt = outputWithTokensToMeltDetails.output as IBasicOutput;
 
-    if (!Array.isArray(outputWithTokensToMelt.nativeTokens)) {
-        throw new Error("There are not native tokens to be melted");
-    }
-
     if (!outputWithTokensToMelt.nativeTokens?.some(element => element.id === tokenClassId)) {
         throw new Error("Unexpected token class Id");
     }
 
-    inputs.push(TransactionHelper.inputFromOutputId(outputWithTokensToMeltID));
 
     const index = outputWithTokensToMelt.nativeTokens?.findIndex(element => element.id === tokenClassId);
 
@@ -132,6 +121,10 @@ async function run() {
     remainderOutput.nativeTokens = remainderOutput.nativeTokens?.filter((element) => {
         element.id !== tokenClassId
     });
+
+    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputID));
+    inputs.push(TransactionHelper.inputFromOutputId(foundryOutputID));
+    inputs.push(TransactionHelper.inputFromOutputId(outputWithTokensToMeltID));
 
     outputs.push(nextAliasOutput);
     outputs.push(nextFoundryOutput);

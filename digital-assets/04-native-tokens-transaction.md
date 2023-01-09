@@ -13,13 +13,13 @@ keywords:
 
 # Performing a transaction involving native tokens
 
-Outputs that hold native tokens can be spent within transactions to transfer some of its native tokens to a new Output. As usual, if there are remaining native tokens you need to put them into another new Output controlled by your source address. In principle there is no need to involve protocol-defined tokens (`SMR`) in this kind of transactions. However, you need to take into account that there are additional storage costs corresponding to the new Outputs generated. For instance, if you use as Input the Output created in the previous step of this tutorial, such an Output only has funds to cover its own storage costs. Thus, in that case you would need to find a second unspent Output that will be used to fund storage costs of the new Outputs generated. In this particular case, you can define a transaction with two Inputs and three Outputs as follows:
+Outputs that hold native tokens can be spent within transactions to transfer some of its native tokens to a new Output. As usual, if there are remaining native tokens you need to put them into another new Output controlled by your source address. In principle there is no need to involve protocol-defined tokens (`SMR`) in this kind of transaction. However, you need to take into account that there are additional storage costs corresponding to the new Outputs generated. For instance, if you use as Input the Output created in the previous step of this tutorial, such an Output only has funds to cover its own storage costs. Thus, in that case you would need to find a second unspent Output that will be used to fund storage costs of the new Outputs generated. To meet storage costs, in this particular case, you can define a transaction with two Inputs and three Outputs as follows:
 
 * Input #1: It corresponds to the UTXO holding native tokens minted in the step 1 of this tutorial. Remember that it also holds some `SMR` tokens that cover its storage costs.
 * Input #2: A UTXO that holds enough funds to cover the storage costs of Output #1 and Output #3 (see below).
 
 * Output #1: The Output holding some of the native tokens transferred from Input #1.  This Output shall also hold enough `SMR` tokens to cover its own storage costs.
-* Output #2: The Output holding the remaining native tokens from Input #1 not transferred to Output #1. This Output shall also hold enough `SMR` tokens to cover its own storage costs.
+* Output #2: The Output holding the remaining native tokens from Input #1 not transferred to Output #1. This Output will also keep the `SMR` tokens from Input #1 to cover its storage costs.
 * Output #3: The Output holding the remaining `SMR` from Input #2. It must at least cover its own storage costs.
 
 ## Preparation
@@ -248,9 +248,9 @@ const essenceFinal = wsTsxEssence.finalBytes();
 const essenceHash = Blake2b.sum256(essenceFinal);
 ```
 
-At the end of this step you have created the transaction essence. Remember that it includes two inputs :
+At the end of this step you have created the transaction essence. Remember that it includes two Inputs :
 
-* Input #1 from  `consumedOutputNativeTokensID` (source of the native tokens transferred)
+* Input #1 from `consumedOutputNativeTokensID` (source of the native tokens transferred)
 * Input #2 from `storageCostsOutputID` (pays the storage costs)
 
 And three Outputs:

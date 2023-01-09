@@ -32,11 +32,11 @@ deal with Digital Assets (user-defined native tokens).
 Starting from [Chrysalis](https://wiki.iota.org/introduction/welcome), IOTA is
 a [UTXO-based (Unspent Transaction Output)](https://wiki.iota.org/introduction/reference/details#unspent-transaction-output-utxo)
 Ledger. Each UTXO, also known as **output**, has an associated number of tokens, protocol-defined Tokens (SMR) and, optionally, user-defined native tokens) that determines its value.
-Thus, the permanent data on the ledger is composed of a set of records (*outputs*) that can be unlocked by the owner of
+Thus, the permanent data on the ledger is composed of a set of records (*Outputs*) that can be unlocked by the owner of
 its associated address, i.e., the one who knows the address' private key.
 
-There are different [output types](https://wiki.iota.org/shimmer/learn/outputs). This tutorial series will focus on
-outputs that involve digital assets (user-defined native tokens). Apart from the already covered [Alias Outputs](), in this tutorial we will also focus on [Foundry Outputs](https://github.com/iotaledger/tips/blob/main/tips/TIP-0018/tip-0018.md#foundry-output). A foundry output is an output that controls the supply of user-defined native tokens. Last but not least we will learn how to define UTXOs to transfer such native tokens among addresses. For Non-Fungible Tokens (NFTs) you can check out this [howto]().
+There are different [Output types](https://wiki.iota.org/shimmer/learn/outputs). This tutorial series will focus on
+outputs that involve digital assets (user-defined native tokens). Apart from the already covered [Alias Outputs](), in this tutorial we will also focus on [Foundry Outputs](https://github.com/iotaledger/tips/blob/main/tips/TIP-0018/tip-0018.md#foundry-output). A *Foundry Output* is an Output that controls the supply of user-defined native tokens. Last but not least you will learn how to define UTXOs to transfer such native tokens among addresses. For Non-Fungible Tokens (NFTs) you can check out this [howto]().
 
 ## Storage Costs and Deposits
 
