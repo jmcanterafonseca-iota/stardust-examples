@@ -17,7 +17,6 @@ keywords:
 - ledger
 - outputs
 - inputs
-
 ---
 
 # Stardust for iota.js: Digital Assets
@@ -36,7 +35,7 @@ Thus, the permanent data on the ledger is composed of a set of records (*Outputs
 its associated address, i.e., the one who knows the address' private key.
 
 There are different [Output types](https://wiki.iota.org/shimmer/learn/outputs). This tutorial series will focus on
-outputs that involve digital assets (user-defined native tokens). Apart from the already covered [Alias Outputs](), in this tutorial we will also focus on [Foundry Outputs](https://github.com/iotaledger/tips/blob/main/tips/TIP-0018/tip-0018.md#foundry-output). A *Foundry Output* is an Output that controls the supply of user-defined native tokens. Last but not least you will learn how to define UTXOs to transfer such native tokens among addresses. For Non-Fungible Tokens (NFTs) you can check out this [howto]().
+outputs that involve digital assets (user-defined native tokens). Apart from the already covered [Alias Outputs](), in this tutorial we will also focus on [Foundry Outputs](https://github.com/iotaledger/tips/blob/main/tips/TIP-0018/tip-0018.md#foundry-output). A *Foundry Output* is an Output that controls the supply of user-defined, custom tokens, also known as  *native tokens*. Last but not least you will learn how to define UTXOs to transfer such native tokens among addresses. For Non-Fungible Tokens (NFTs) you can check out this [howto](https://wiki.iota.org/shimmer/iotajs/how_tos/mint_nft/).
 
 ## Storage Costs and Deposits
 

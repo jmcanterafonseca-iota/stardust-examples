@@ -18,11 +18,15 @@ keywords:
 
 In order to mint a new class of native tokens you need:
 
-* An initial *unspent Output* that holds enough funds so that the storage costs of the different Outputs involved can be covered. In the Testnet, you can [request funds through the Faucet](../value-transactions/request-funds-from-the-faucet/). Remember that storage costs must always be covered by **protocol-defined tokens** (`SMR`).
-* A *Token Scheme*, that defines a class of tokens with *initial supply* (how many native tokens of that class are minted initially) and *maximum supply*.
-* A *Foundry Output* that captures all the parameters and state related to your new class of native tokens.
+* An initial *unspent Output* that holds enough funds so that the [storage costs]() of the different Outputs involved can be covered. In the Testnet, you can [request funds through the Faucet](../value-transactions/request-funds-from-the-faucet/). Remember that storage costs must be covered by **protocol-defined tokens** (`SMR`).
+
 * An *Alias Address* that will be used to control the Foundry Output associated to your new class of native tokens. Any change made to the Foundry state will require the keys of the State Controller of this Alias Address and the corresponding state transition that will generate a subsequent unspent Alias Output.
-* An *Address* to which the initial supply of native tokens (the ones initially minted) will be transferred to (through a Basic Output).
+
+* A *Token Scheme*, that defines a class of tokens with *initial supply* (how many native tokens of that class are minted initially) and *maximum supply*.
+
+* A *Foundry Output* that captures all the parameters and state related to your new class of native tokens, including the Token Scheme.
+
+* An *Address* to which the initial supply of native tokens (the ones initially minted) will be transferred to (through a Basic Output). In a [previous tutorial]() it was explained how new addresses can be generated.
 
 ## Transfer funds to cover storage deposits
 
@@ -40,7 +44,7 @@ State Controller Address: `rms1qpj8775lmqcudesrfel9f949ptk30mma9twjqza5el08vjww9
 
 During this tutorial part it is assumed that the new Alias ID minted holds enough funds (protocol-defined tokens) to cover the new Outputs that will be generated during this tutorial.
 
-## Prepare the Alias Output
+## Alias Address Preparations
 
 ### Obtain the current Alias Output
 
@@ -115,7 +119,7 @@ const foundryOutput: IFoundryOutput = {
 };
 ```
 
-## Construct the Token Class ID
+### Construct the Token Class ID
 
 In order to transact with native tokens you need to refer uniquely to each class of native tokens controlled by each foundry. You can do it through the class ID that it is obtained by calculating a hash of the alias ID, foundry serial output and the type of token scheme.
 
@@ -135,7 +139,7 @@ Actually that token class ID is just the Foundry ID that will remain immutable r
 
 ## Define the Basic Output that will hold the initial batch of minted tokens
 
-As there is an initial set of minted tokens by the Foundry, you are going to need a Basic Output to hold those native tokens. The definition of a Basic Output was already explained in our [introduction tutorial](). The only difference here is that this Basic Output will also hold the initial amount of minted native tokens, identified through its token class ID. As it happened with previous Outputs, you need to set the amount of protocol-defined tokens to `0` as you don't know yet the storage deposit cost.
+As there is an initial set of minted tokens by the Foundry, you are going to need a Basic Output to hold those native tokens. The definition of a Basic Output was already explained in a [previous tutorial](). The only difference here is that this Basic Output will also hold the initial amount of minted native tokens, identified through its token class ID. As it happened with previous Outputs, you need to set the amount of protocol-defined tokens to `0` as you don't know yet the storage deposit cost.
 
 ```typescript
 const nativeTokenOwnerAddress = "0x647f....";
@@ -192,9 +196,9 @@ tokenFundsOutput.amount = tokenFundsStorageDeposit.toString();
 
 In this case this is a complex transaction that involves one input and three different outputs. The input is the Alias Output we obtained through our initial query to the indexer plugin. The Outputs are threefold:
 
-* The next Alias Output of our Alias Address
-* The initial Foundry Output
-* The Basic Output that holds the native token funds initially minted
+* The next Alias Output of our Alias Address (`nextAliasOutput`)
+* The initial Foundry Output (`foundryOutput`)
+* The Basic Output that holds the native token funds initially minted (`tokenFundsOutput`)
 
 ```typescript
 const inputs: IUTXOInput[] = [];
@@ -222,7 +226,7 @@ const essenceHash = Blake2b.sum256(essenceFinal);
 
 ### Transaction Signature
 
-Once you have the transaction essence you need to provide the signature that unlocks our initial Alias Output (the input of our transaction). Remember that for unlocking an Alias Output it is needed the Private Key of the State Controller Address.
+Once you have the transaction essence you need to provide the signature that unlocks our initial Alias Output (the Input of our transaction). Remember that for unlocking an Alias Output it is needed the Private Key of the State Controller Address.
 
 ```typescript
 const stateControllerPubKey = "0x55419...";
@@ -246,7 +250,7 @@ const transactionPayload: ITransactionPayload = {
 
 ### Submit the Block
 
-Now that we have the transaction payload you can submit the corresponding Block as we did in previous tutorials:
+Now that you have the transaction payload you can submit the corresponding Block as we did in previous tutorials:
 
 ```typescript
 const block: IBlock = {
@@ -262,3 +266,7 @@ console.log("Native Token Class ID", tokenClassId);
 ```
 
 Once you know the Block ID and the Native Token Class ID you can query them through the Explorer to verify that your transaction went well and the Foundry Output has been added to the Ledger.
+
+## Putting It All Together
+
+You can find [here]() the source code of the program thar executes all the steps of this part of the tutorial.

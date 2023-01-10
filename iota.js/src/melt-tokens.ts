@@ -118,6 +118,7 @@ async function run() {
     const remainderOutput = JSON.parse(JSON.stringify(outputWithTokensToMelt)) as IBasicOutput;
 
     // No longer have native tokens
+    const found = false;
     remainderOutput.nativeTokens = remainderOutput.nativeTokens?.filter((element) => {
         element.id !== tokenClassId
     });

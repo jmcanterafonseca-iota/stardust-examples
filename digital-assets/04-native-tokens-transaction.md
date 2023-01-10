@@ -84,7 +84,7 @@ if (remainingNativeAmount.lesser(bigInt(0))) {
 inputs.push(TransactionHelper.inputFromOutputId(consumedOutputNativeTokensID));
 ```
 
-You can observe that the query made to the indexation plugin includes the filter parameter `hasNativeTokens`, so that you can find easily the Basic Output you are concerned with. In this tutorial, it is ensured the Output at least holds `12` native tokens. Please take into account that in a real-world case you would also test that the Output holds token of the class you are expecting.
+You can observe that the query made to the indexation plugin includes the filter parameter `hasNativeTokens`, so that you can find easily the Basic Output you are concerned with. In this tutorial, it is ensured the Output at least holds `12` native tokens. Please take into account that in a real-world case you would also test that the Output holds token of the class ID you are expecting.
 
 At the end of this step you know Input #1.
 
@@ -183,7 +183,7 @@ At the end of this step you have defined Output #3 and you know the storage cost
 
 ## Find an Output that can cover storage costs
 
-Once you know the storage costs the problem is reduced to find a suitable target Output from the Outputs your source address is controlling. The code that can be used for that purpose is shown below. You can observe that the indexer plugin is used to find the unspent Basic Outputs that can fit our purpose. `hasNativeTokens` filter condition is set to `false` to avoid conflicts with Input #1. Once a list of potential Outputs is obtained, the first that has the minimal amount of `SMR` needed is taken. Please take into account that the corner case of obtaining an Output of the exact amount is not covered.
+Once you know the storage costs the problem is reduced to find a suitable target Output from the Outputs your source address is controlling. The code that can be used for that purpose is shown below. You can observe that the indexer plugin is used to find the unspent Basic Outputs that can fit your purpose. `hasNativeTokens` filter condition is set to `false` to avoid conflicts with Input #1. Once a list of potential Outputs is obtained, the first that has the minimal amount of `SMR` needed is taken. Please take into account that the corner case of obtaining an Output of the exact amount is not covered.
 
 ```typescript
 const outputList2 = await indexerPlugin.basicOutputs({
@@ -300,3 +300,7 @@ const block: IBlock = {
 const blockId = await client.blockSubmit(block);
 console.log("Block Id:", blockId);
 ```
+
+## Putting It All Together
+
+You can find [here]() the source code of the program thar executes all the steps of this part of the tutorial.

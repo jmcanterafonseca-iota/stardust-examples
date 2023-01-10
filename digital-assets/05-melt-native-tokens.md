@@ -16,14 +16,14 @@ keywords:
 
 # Melting native tokens
 
-In this part of the tutorial you will learn how to transition an existing Foundry Output to a new state. Specifically you will learn how to melt those tokens that were transferred to an Output in the [previous part of this tutorial](). This transaction is going to involve three Inputs and three Outputs as follows:
+In this part of the tutorial you will learn how to transition an existing Foundry Output to a new state. Specifically you will learn how to melt the tokens that were transferred to an Output in the [previous part of this tutorial](). This transaction is going to involve three Inputs and three Outputs as follows:
 
 * Input #1 The unspent Output of the Alias Address that controls your Foundry, created in [part 3 of this tutorial]().
 * Input #2. The Foundry Output created in [part 3 of this tutorial](), controlled by your Alias Address and which corresponds to the serial number `1`.
 * Input #3. The UTXO created in [part 4 of this tutorial]() that holds `12` native tokens that you are going to melt by issuing this transaction.
 
 * Output #1 The next Alias Output that captures the state of your Alias Address.
-* Output #2 The next Foundry Output that captures the next state of your Foundry (with melted tokens after transaction confirmation)
+* Output #2 The next Foundry Output that captures the next state of your Foundry (declaring melted tokens after transaction confirmation)
 * Output #3 The same as Input #3 but without any native token as they will have been melted.
 
 ## Preparation
@@ -61,11 +61,11 @@ const nativeTokenOwnerPrivateKey = "0xc4e210...";
 
 ## Set new state of your Alias Address
 
-In this step you need to transition the Alias Address to a new state as one of its bound elements, the Foundry, is changing its state.
+In this step you need to transition the Alias Address to a new state, as one of its bound elements, the Foundry, is changing its state.
 
 ### Query Alias Output
 
-First of all you need to find the unspent Alias Output of your Alias Address, and the easiest way to do it is through a query to the indexing plugin by Alias ID. Observe that you need to obtain the full Output details as you would need to use it as Input of your transaction.
+First of all you need to find the unspent Alias Output of your Alias Address through a query to the indexing plugin by Alias ID. Observe that you need to obtain the full Output details as you would need to use it as Input of your transaction.
 
 ```typescript
 const indexerPlugin = new IndexerPluginClient(client);
@@ -79,7 +79,7 @@ const initialAliasOutput: IAliasOutput = initialAliasOutputDetails.output as IAl
 
 ### Assign the new state of the Alias
 
-In order to continue you can create the next Alias Output by just cloning the one received in the previous step, and afterwards increment the `stateIndex`.
+In order to continue you can create the next Alias Output by just cloning the one obtained in the previous step, and afterwards increment the `stateIndex`.
 
 ```typescript
 const nextAliasOutput: IAliasOutput = JSON.parse(JSON.stringify(initialAliasOutput));
@@ -94,7 +94,7 @@ In this step you need to transition your Foundry to a new state as some tokens w
 
 ### Query Foundry Output
 
-The first sub-step to take is to find the unspent Foundry Output you need to transition, and the easiest way to do it is through a query to the indexing plugin by Alias Address. Observe that you need to obtain the full Output details as you would need to use it as input of your transaction.
+The first sub-step to take is to find the unspent Foundry Output you need to transition through a query to the indexing plugin by Alias Address. Observe that you need to obtain the full Output details as you would need to use it as Input of your transaction.
 
 ```typescript
 const aliasIdBech32 = Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, Converter.hexToBytes(aliasId), protocolInfo.bech32Hrp);
@@ -156,6 +156,7 @@ We use the  `findIndex` function to ensure we refer to the right token class, as
 
 ```typescript
 const index = outputWithTokensToMelt.nativeTokens?.findIndex(element => element.id === tokenClassId);
+
 nextFoundryOutput.tokenScheme.meltedTokens = outputWithTokensToMelt.nativeTokens[index].amount;
 ```
 
@@ -168,7 +169,7 @@ In this step you need to create the remainder Output. The remainder Output will 
 ```typescript
 const remainderOutput = JSON.parse(JSON.stringify(outputWithTokensToMelt)) as IBasicOutput;
 
-// No longer have native tokens
+// No longer have native tokens (assumption: there is only one entry of native tokens of tokenClassId)
 remainderOutput.nativeTokens = remainderOutput.nativeTokens?.filter((element) => {
     element.id !== tokenClassId
 });
@@ -205,7 +206,7 @@ const transactionEssence: ITransactionEssence = {
 };
 ```
 
-At the end of this step you have created the transaction essence. Remember that it includes three Inputs :
+At the end of this step the transaction essence is defined. Remember that it includes three Inputs :
 
 * Input #1 from `consumedOutputID` (Unspent Alias Output of the Alias Address)
 * Input #2 from `foundryOutputID` (Unspent Foundry Output owned by the Alias Address)
@@ -214,7 +215,7 @@ At the end of this step you have created the transaction essence. Remember that 
 And three Outputs:
 
 * Output #1 `nextAliasOutput` (Next Alias Output of the Alias Address)
-* Output #2 `nextFoundryOutput` (Next Foundry Output now with melted tokens)
+* Output #2 `nextFoundryOutput` (Next Foundry Output, now declaring melted tokens)
 * Output #3 `remainderOutput` (remainder of the Basic Output with no native tokens of `tokenClassID`)
 
 ## Provide unlocks
@@ -264,7 +265,7 @@ const transactionPayload: ITransactionPayload = {
 
 ## Submit block
 
-And finally we submit the block. After the block is confirmed if you query your Alias Address through the Explorer you will find the new Alias Output with the updated state.
+And finally you submit the block. After the block is confirmed if you query your Alias Address through the Explorer you will find the new Alias Output with the updated state.
 
 ```typescript
 const block: IBlock = {
@@ -277,3 +278,7 @@ const block: IBlock = {
 const blockId = await client.blockSubmit(block);
 console.log("Block Id:", blockId);
 ```
+
+## Putting It All Together
+
+You can find [here]() the source code of the program thar executes all the steps of this part of the tutorial.

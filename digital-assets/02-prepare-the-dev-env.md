@@ -67,6 +67,8 @@ npm run native-tokens-transaction
 
 #### Melt Native Tokens
 
+You can run the `melt-native-tokens` script by running the following command from the example's directory:
+
 ```bash
 npm run melt-native-tokens
 ```
