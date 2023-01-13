@@ -1,17 +1,19 @@
 import { Blake2b, Ed25519 } from "@iota/crypto.js";
 import {
+    ADDRESS_UNLOCK_CONDITION_TYPE,
     DEFAULT_PROTOCOL_VERSION,
+    ED25519_ADDRESS_TYPE,
     ED25519_SIGNATURE_TYPE,
-    IAliasOutput,
     IBlock,
     IndexerPluginClient,
+    INftOutput,
     ISignatureUnlock,
     ITransactionEssence,
     ITransactionPayload,
     IUTXOInput,
-    serializeTransactionEssence,
     SIGNATURE_UNLOCK_TYPE,
     SingleNodeClient,
+    STORAGE_DEPOSIT_RETURN_UNLOCK_CONDITION_TYPE,
     TransactionHelper,
     TRANSACTION_ESSENCE_TYPE,
     TRANSACTION_PAYLOAD_TYPE,
@@ -22,70 +24,79 @@ import { Converter, WriteStream } from "@iota/util.js";
 const API_ENDPOINT = "https://api.testnet.shimmer.network";
 
 // The aliasId on the Ledger 
-const aliasId = process.argv[2];
-if (!aliasId) {
-    console.error("Please provide an alias Id to perform transition");
+const nftId = process.argv[2];
+if (!nftId) {
+    console.error("Please provide an NFT ID to perform transition");
     process.exit(-1);
 }
 
-
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
-    const protocolInfo = await client.protocolInfo();
+    const nodeInfo = await client.info();
 
-    const stateControllerPubKey = "0x55419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
-    const stateControllerPrivateKey = "0xa060fffb21412a1d1a1afee3e0f4a3ac152a0098bbf1c5096bfad72e45fa4e4455419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
+    const nftOwnerAddr = "";
+    const nftOwnerPubKey = "";
+    const nftOwnerPrivateKey = "";
+
+    const nftBuyerAddr = "";
 
     const inputs: IUTXOInput[] = [];
-    const outputs: IAliasOutput[] = [];
+    const outputs: INftOutput[] = [];
 
     const indexerPlugin = new IndexerPluginClient(client);
-    const outputList = await indexerPlugin.alias(aliasId);
+    const outputList = await indexerPlugin.nft(nftId);
     const consumedOutputId = outputList.items[0];
     console.log("Consumed Output Id", consumedOutputId);
 
-    const initialAliasOutputDetails = await client.output(consumedOutputId);
+    const initialNftOutputDetails = await client.output(consumedOutputId);
 
-    const initialAliasOutput: IAliasOutput = initialAliasOutputDetails.output as IAliasOutput;
+    const initialNftOutput: INftOutput = initialNftOutputDetails.output as INftOutput;
 
     // New output. Alias output. 
-    const nextAliasOutput: IAliasOutput = JSON.parse(JSON.stringify(initialAliasOutput));
-    nextAliasOutput.stateIndex++;
-    nextAliasOutput.stateMetadata = "0x987654";
-    console.log("New state index: ", nextAliasOutput.stateIndex);
-    nextAliasOutput.aliasId = aliasId;
+    const nextNftOutput: INftOutput = JSON.parse(JSON.stringify(initialNftOutput));
+    nextNftOutput.unlockConditions = [
+        {
+            type: ADDRESS_UNLOCK_CONDITION_TYPE,
+            address: {
+                type: ED25519_ADDRESS_TYPE,
+                pubKeyHash: nftBuyerAddr
+            }
+        },
+        {
+            type: STORAGE_DEPOSIT_RETURN_UNLOCK_CONDITION_TYPE,
+            amount: nextNftOutput.amount,
+            returnAddress: {
+                type: ED25519_ADDRESS_TYPE,
+                pubKeyHash: nftOwnerAddr
+            }
+        }
+    ];
+
+    nextNftOutput.nftId = nftId;
 
     inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
-    outputs.push(nextAliasOutput);
+    outputs.push(nextNftOutput);
 
     // 4. Get inputs commitment
-    const inputsCommitment = TransactionHelper.getInputsCommitment([initialAliasOutput]);
+    const inputsCommitment = TransactionHelper.getInputsCommitment([initialNftOutput]);
 
-    // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
         type: TRANSACTION_ESSENCE_TYPE,
-        networkId: protocolInfo.networkId,
+        networkId: TransactionHelper.networkIdFromNetworkName(nodeInfo.protocol.networkName),
         inputs,
         inputsCommitment,
         outputs
     };
 
-    const wsTsxEssence = new WriteStream();
-    serializeTransactionEssence(wsTsxEssence, transactionEssence);
-    const essenceFinal = wsTsxEssence.finalBytes();
-
-    const essenceHash = Blake2b.sum256(essenceFinal);
-    console.log("Essence Hash", essenceHash);
-
-    console.log("Transaction Essence: ", transactionEssence);
+   const essenceHash = TransactionHelper.getTransactionEssenceHash(transactionEssence);
 
     // Main unlock condition 
     const unlockCondition: ISignatureUnlock = {
         type: SIGNATURE_UNLOCK_TYPE,
         signature: {
             type: ED25519_SIGNATURE_TYPE,
-            publicKey: stateControllerPubKey,
-            signature: Converter.bytesToHex(Ed25519.sign(Converter.hexToBytes(stateControllerPrivateKey), essenceHash), true)
+            publicKey: nftOwnerPubKey,
+            signature: Converter.bytesToHex(Ed25519.sign(Converter.hexToBytes(nftOwnerPrivateKey), essenceHash), true)
         }
     };
 
