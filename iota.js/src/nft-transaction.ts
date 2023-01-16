@@ -45,6 +45,10 @@ async function run() {
 
     const indexerPlugin = new IndexerPluginClient(client);
     const outputList = await indexerPlugin.nft(nftId);
+    if (outputList.items.length === 0) {
+        throw new Error ("NFT not found");
+    }
+
     const consumedOutputId = outputList.items[0];
     console.log("Consumed Output Id", consumedOutputId);
 
@@ -52,7 +56,7 @@ async function run() {
 
     const initialNftOutput: INftOutput = initialNftOutputDetails.output as INftOutput;
 
-    // New output. Alias output. 
+    // New output. NFT output. 
     const nextNftOutput: INftOutput = JSON.parse(JSON.stringify(initialNftOutput));
     nextNftOutput.unlockConditions = [
         {
