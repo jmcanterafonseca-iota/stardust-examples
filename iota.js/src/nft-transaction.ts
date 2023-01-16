@@ -34,11 +34,11 @@ async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const nodeInfo = await client.info();
 
-    const nftOwnerAddr = "";
-    const nftOwnerPubKey = "";
-    const nftOwnerPrivateKey = "";
+    const nftOwnerAddr = "0x62c02a68b2efce54a452a114ab2affa940f776b362a67fc4453e0cf757a33596";
+    const nftOwnerPubKey = "0x91dbbfb5372a9ee9addb2c909e1e4c60ddb5d22c11da19d00482e229af3ef724";
+    const nftOwnerPrivateKey = "0x22f67a6b7b80215638e367857afdda48d16dcf79af0edf9cd3aeaa704fb2aed191dbbfb5372a9ee9addb2c909e1e4c60ddb5d22c11da19d00482e229af3ef724";
 
-    const nftBuyerAddr = "";
+    const nftBuyerAddr = "0x57d3ca802911dc5dfd505cc0ce9c0493b7183094db6ae441a4b6950368ef22d8";
 
     const inputs: IUTXOInput[] = [];
     const outputs: INftOutput[] = [];

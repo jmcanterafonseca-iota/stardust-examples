@@ -97,13 +97,13 @@ async function run() {
     };
 
     const nftStorageCost = TransactionHelper.getStorageDeposit(nftOutput, nodeInfo.protocol.rentStructure);
-    const amountNeeded = bigInt(nftStorageCost).toString();
-    nftOutput.amount = amountNeeded;
+    const amountNeeded = bigInt(nftStorageCost).multiply(bigInt(2));
+    nftOutput.amount = amountNeeded.toString();
 
     // The remaining output remains in the origin address
     const remainderBasicOutput: IBasicOutput = JSON.parse(JSON.stringify(consumedOutput));
 
-    const remainingFunds = bigInt(consumedOutput.amount).minus(bigInt(nftStorageCost));
+    const remainingFunds = bigInt(consumedOutput.amount).minus(bigInt(nftOutput.amount));
     remainderBasicOutput.amount = remainingFunds.toString();
 
     outputs.push(nftOutput);
