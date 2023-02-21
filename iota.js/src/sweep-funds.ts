@@ -29,7 +29,7 @@ const API_ENDPOINT = "https://api.testnet.shimmer.network";
 
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
-    const protocolInfo = await client.protocolInfo();
+    const info = await client.info();
 
     // For performing transactions
     const sourceAddressBech32 = "rms1qpj8775lmqcudesrfel9f949ptk30mma9twjqza5el08vjww9v927ywt70u";
@@ -84,7 +84,7 @@ async function run() {
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
         type: TRANSACTION_ESSENCE_TYPE,
-        networkId: protocolInfo.networkId,
+        networkId: TransactionHelper.networkIdFromNetworkName(info.protocol.networkName),
         inputs,
         inputsCommitment,
         outputs

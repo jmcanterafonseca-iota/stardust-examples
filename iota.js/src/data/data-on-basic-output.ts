@@ -13,10 +13,12 @@ import {
     ITransactionPayload,
     IUTXOInput,
     METADATA_FEATURE_TYPE,
+    SENDER_FEATURE_TYPE,
     serializeTransactionEssence,
     SIGNATURE_UNLOCK_TYPE,
     SingleNodeClient,
     TAG_FEATURE_TYPE,
+    TIMELOCK_UNLOCK_CONDITION_TYPE,
     TransactionHelper,
     TRANSACTION_ESSENCE_TYPE,
     TRANSACTION_PAYLOAD_TYPE,
@@ -27,7 +29,7 @@ import bigInt from "big-integer";
 
 const API_ENDPOINT = "https://api.testnet.shimmer.network";
 
-async function run() {
+async function run() {    
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const nodeInfo = await client.info();
 
@@ -40,20 +42,13 @@ async function run() {
     const inputs: IUTXOInput[] = [];
     const outputs: IBasicOutput[] = [];
 
-    const indexerPlugin = new IndexerPluginClient(client);
-    const outputList = await indexerPlugin.basicOutputs({
-        addressBech32: sourceAddressBech32
-    });
-
-    const consumedOutputId = outputList.items[0];
-
-    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
-
-    const outputDetails = await client.output(consumedOutputId);
-    const totalFunds = bigInt(outputDetails.output.amount);
     const dataStored = {
         type: "Annotation",
         custodian: "C456789"
+    };
+
+    const tag = {
+        asset: "A1111"
     };
 
     // New output
@@ -68,22 +63,60 @@ async function run() {
                     type: ED25519_ADDRESS_TYPE,
                     pubKeyHash: sourceAddress
                 }
+            },
+            {
+                type: TIMELOCK_UNLOCK_CONDITION_TYPE,
+                unixTime: 4294967295
             }
         ],
         features: [
+            {
+                type: SENDER_FEATURE_TYPE,
+                address: {
+                    type: ED25519_ADDRESS_TYPE,
+                    pubKeyHash: sourceAddress
+                }
+            },
             {
                 type: METADATA_FEATURE_TYPE,
                 data: Converter.utf8ToHex(JSON.stringify(dataStored), true)
             },
             {
                 type: TAG_FEATURE_TYPE,
-                tag: Converter.utf8ToHex("A1111", true)
+                tag: Converter.utf8ToHex(JSON.stringify(tag), true)
             }
         ]
     };
 
     const outputStorageCost = bigInt(TransactionHelper.getStorageDeposit(dataOutput, nodeInfo.protocol.rentStructure));
     dataOutput.amount = outputStorageCost.toString();
+
+    const indexerPlugin = new IndexerPluginClient(client);
+    const outputList = await indexerPlugin.basicOutputs({
+        addressBech32: sourceAddressBech32
+    });
+
+
+    let consumedOutputId;
+    // Get the output to be consumed
+    let consumedOutput: IBasicOutput | undefined;
+    for (const output of outputList.items) {
+        const outputData = await client.output(output);
+        if (bigInt(outputData.output.amount).greater(outputStorageCost)) {
+            consumedOutputId = output;
+            consumedOutput = outputData.output as IBasicOutput;
+        }
+    }
+
+    if (!consumedOutputId || !consumedOutput) {
+        throw new Error("Output to cover sotrage costs not found");
+    }
+
+    console.log(consumedOutputId);
+
+    inputs.push(TransactionHelper.inputFromOutputId(consumedOutputId));
+
+    const totalFunds = bigInt(consumedOutput.amount);
 
     // The remaining output remains in the origin address
     const remainderBasicOutput: IBasicOutput = {
@@ -106,7 +139,7 @@ async function run() {
     outputs.push(remainderBasicOutput);
 
     // 4. Get inputs commitment
-    const inputsCommitment = TransactionHelper.getInputsCommitment([outputDetails.output]);
+    const inputsCommitment = TransactionHelper.getInputsCommitment([consumedOutput]);
 
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {

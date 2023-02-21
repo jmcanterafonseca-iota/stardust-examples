@@ -31,7 +31,7 @@ if (!aliasId) {
 
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
-    const protocolInfo = await client.protocolInfo();
+    const info = await client.info();
 
     const stateControllerPubKey = "0x55419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
     const stateControllerPrivateKey = "0xa060fffb21412a1d1a1afee3e0f4a3ac152a0098bbf1c5096bfad72e45fa4e4455419a2a5a78703a31b00dc1d2c0c463df372728e4b36560ce6fd38255f05bfa";
@@ -64,7 +64,7 @@ async function run() {
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
         type: TRANSACTION_ESSENCE_TYPE,
-        networkId: protocolInfo.networkId,
+        networkId: TransactionHelper.networkIdFromNetworkName(info.protocol.networkName),
         inputs,
         inputsCommitment,
         outputs

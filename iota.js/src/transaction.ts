@@ -57,7 +57,7 @@ async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
     const indexerPlugin = new IndexerPluginClient(client);
 
-    const protocolInfo = await client.protocolInfo();
+    const info = await client.info();
 
     const outputs = await indexerPlugin.basicOutputs({
         addressBech32: bech32AddressOrigin,
@@ -167,7 +167,7 @@ async function run() {
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
         type: TRANSACTION_ESSENCE_TYPE,
-        networkId: protocolInfo.networkId,
+        networkId: TransactionHelper.networkIdFromNetworkName(info.protocol.networkName),
         inputs,
         inputsCommitment,
         outputs: [basicOutput, remainderBasicOutput]

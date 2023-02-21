@@ -46,7 +46,7 @@ if (!fundsToTransfer) {
 
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT, { powProvider: new NeonPowProvider() });
-    const protocolInfo = await client.protocolInfo();
+    const info = await client.info();
 
     // Ed25519 Address (PubKeyHash)
     const sourceAddress = "0x377a465d1d2e6f3e57e14dbf82171be7a472139174386d86fe5dba475c4d514f";
@@ -126,7 +126,7 @@ async function run() {
     // 5.Create transaction essence
     const transactionEssence: ITransactionEssence = {
         type: TRANSACTION_ESSENCE_TYPE,
-        networkId: protocolInfo.networkId,
+        networkId: TransactionHelper.networkIdFromNetworkName(info.protocol.networkName),
         inputs,
         inputsCommitment,
         outputs
@@ -179,7 +179,7 @@ async function run() {
 
     const addrHash = Blake2b.sum256(Converter.hexToBytes(outputId));
     console.log("Alias ID:", Converter.bytesToHex(addrHash, true));
-    console.log("Alias Address:", Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, addrHash, protocolInfo.bech32Hrp));
+    console.log("Alias Address:", Bech32Helper.toBech32(ALIAS_ADDRESS_TYPE, addrHash, info.protocol.bech32Hrp));
 }
 
 function computeTransactionIdFromTransactionPayload(payload: ITransactionPayload) {
