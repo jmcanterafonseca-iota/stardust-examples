@@ -1,0 +1,18 @@
+did: did:iota:tst:0xcbccdddd9fda767569a02495efd410426d1546af775725a39dbd5b42e0889ad6
+
+
+Controlling the DID:
+
+Address Index m/44'/4218'/0'/0'/0'
+	Private Key 0x72bca58a3602cde28e99911ca855c7f3ebb25ec644356ae505a8ae64c940e34070370f49f8c7953c5621f5e444907e08f6d0e1ddc9e8f1fb758b42545668a109
+	Public Key 0x70370f49f8c7953c5621f5e444907e08f6d0e1ddc9e8f1fb758b42545668a109
+	Address Ed25519 0x85e43c4db5e9904f04ac49636cdf6bb3fd7b9b169bf0957e35596a133d14cd8d
+	Address Bech32 tst1qzz7g0zdkh5eqncy43ykxmxldwel67umz6dlp9t7x4vk5yeaznxc6nja37q
+
+Verification Method:
+
+Address Index m/44'/4218'/0'/1'/0'
+	Private Key 0x913c96b5900c843c26aabf9f3db1e99c3d9ed5294738a396911012d46971a07798e4b853c1fd4877bb18ff0bc30efdb5c40afc614831655552d39e761359f5d6
+	Public Key 0x98e4b853c1fd4877bb18ff0bc30efdb5c40afc614831655552d39e761359f5d6
+	Address Ed25519 0xe1f90f245c32c40a519c9c847cd71e541f06562ebfcdea564324b7d2c6fb68f9
+	Address Bech32 tst1qrsljreytsevgzj3njwgglxhre2p7pjk96lum6jkgvjt05kxld50jjtmtky

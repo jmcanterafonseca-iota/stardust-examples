@@ -9,15 +9,21 @@ import {
 } from "@iota/iota.js";
 import { Converter } from "@iota/util.js";
 
-const API_ENDPOINT = "https://api.testnet.shimmer.network";
+// const API_ENDPOINT = "https://api.testnet.shimmer.network";
+const API_ENDPOINT = "http://52.213.240.168:14265";
 
 async function run() {
     const client = new SingleNodeClient(API_ENDPOINT);
 
     const info = await client.info();
 
-    /* Generate a random mnemonic. */
-    const randomMnemonic = Bip39.randomMnemonic();
+    let randomMnemonic = process.argv[2];
+
+    if (!randomMnemonic) {
+        /* Generate a random mnemonic. */
+        randomMnemonic = Bip39.randomMnemonic();
+    }
+
     console.log("\tMnemonic:", randomMnemonic);
 
     // Generate the seed from the Mnemonic
@@ -48,7 +54,7 @@ async function run() {
         console.log("\tAddress Ed25519", Converter.bytesToHex(indexPublicKeyAddress, true));
         console.log(
             "\tAddress Bech32",
-            Bech32Helper.toBech32(ED25519_ADDRESS_TYPE, indexPublicKeyAddress, info.protocol.bech32Hrp)
+            Bech32Helper.toBech32(ED25519_ADDRESS_TYPE, indexPublicKeyAddress, "ebsi")
         );
         console.log();
     }
